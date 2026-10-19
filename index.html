@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>БЕЗУМНЫЙ ПОКЕР 🎰</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   БЕЗУМНЫЙ ПОКЕР — казино, которое сошло с ума
+   ============================================================ */
+:root{
+  --ink:#1c0b2b;
+  --cream:#fff6e5;
+  --gold:#ffcf3f;
+  --pink:#ff2e88;
+  --cyan:#2ee6d6;
+  --felt1:#b81d5b;
+  --felt2:#6d0f36;
+  --room1:#31114a;
+  --room2:#0e0518;
+  --disp:'Rubik Mono One','Arial Black',sans-serif;
+  --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  --cw-bot:clamp(26px,6vmin,46px);
+  --cw-me:clamp(46px,9.5vmin,74px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:var(--body);
+  background:
+    radial-gradient(ellipse at 50% -10%, #4a1a6b 0%, transparent 55%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,.022) 0 2px, transparent 2px 26px),
+    radial-gradient(ellipse at 50% 120%, #22083a 0%, var(--room2) 70%);
+  color:var(--cream);
+  user-select:none;
+  touch-action:manipulation;
+}
+#dust{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
+#dust span{position:absolute;bottom:-20px;border-radius:50%;background:rgba(255,207,63,.35);animation:dustUp linear infinite;}
+@keyframes dustUp{to{transform:translateY(-110vh) translateX(30px);opacity:0;}}
+
+/* ---------- КАРКАС ---------- */
+#stage{position:fixed;inset:0;display:flex;flex-direction:column;z-index:2;}
+#stage.shaking{animation:shakeStage .5s;}
+@keyframes shakeStage{
+  0%,100%{transform:translate(0,0) rotate(0);}
+  15%{transform:translate(-10px,6px) rotate(-.7deg);}
+  30%{transform:translate(9px,-7px) rotate(.8deg);}
+  45%{transform:translate(-8px,-5px) rotate(-.5deg);}
+  60%{transform:translate(7px,6px) rotate(.6deg);}
+  80%{transform:translate(-5px,3px) rotate(-.3deg);}
+}
+
+/* ---------- ЛЕНТА ПРАВИЛА ---------- */
+#ribbon{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:6px 10px;background:linear-gradient(180deg,#2a0d3f,#180726);
+  border-bottom:3px dashed rgba(255,207,63,.5);z-index:20;flex-wrap:wrap;
+}
+#roundTag{font-family:var(--disp);font-size:clamp(10px,2.4vmin,15px);color:var(--cyan);white-space:nowrap;}
+#ruleBox{flex:1;text-align:center;min-width:0;}
+#ruleName{font-family:var(--disp);font-size:clamp(12px,3vmin,20px);color:var(--gold);text-shadow:2px 2px 0 #000;letter-spacing:.5px;}
+#ruleDesc{font-size:clamp(9px,2vmin,13px);opacity:.85;font-weight:700;}
+.ribbonBtn{
+  font-family:var(--disp);font-size:clamp(11px,2.6vmin,16px);
+  background:#3c1355;color:var(--cream);border:2px solid var(--gold);
+  border-radius:10px;padding:4px 9px;cursor:pointer;box-shadow:0 3px 0 #000;
+}
+.ribbonBtn:active{transform:translateY(2px);box-shadow:0 1px 0 #000;}
+
+/* ---------- СТОЛ ---------- */
+#tableWrap{flex:1;position:relative;overflow:hidden;min-height:0;}
+#table{
+  position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  width:min(92vw,760px);height:min(56vw,430px);max-height:62vh;
+  border-radius:50%;
+  background:
+    radial-gradient(ellipse at 50% 30%, #d8356f 0%, var(--felt1) 35%, var(--felt2) 100%);
+  border:7px solid var(--gold);
+  outline:3px dashed rgba(46,230,214,.55);outline-offset:-16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.65), inset 0 0 90px rgba(0,0,0,.5), inset 0 0 26px rgba(255,46,136,.4);
+}
+#table::before{ /* трещины */
+  content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:
+    linear-gradient(115deg, transparent 47.7%, rgba(0,0,0,.35) 48%, transparent 48.4%),
+    linear-gradient(23deg, transparent 66.7%, rgba(0,0,0,.28) 67%, transparent 67.3%);
+}
+.sticker{position:absolute;font-size:clamp(14px,3vmin,26px);opacity:.85;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.5));pointer-events:none;}
+.sticker i{display:block;font-style:normal;font-family:var(--disp);font-size:.42em;color:var(--gold);text-shadow:1px 1px 0 #000;transform:rotate(-6deg);}
+.bulb{position:absolute;width:9px;height:9px;border-radius:50%;background:#ffd83f;box-shadow:0 0 8px 2px rgba(255,216,63,.8);animation:bulbBlink 1.1s steps(2) infinite;}
+.bulb.b2{background:var(--cyan);box-shadow:0 0 8px 2px rgba(46,230,214,.8);animation-delay:.55s;}
+@keyframes bulbBlink{50%{opacity:.25;box-shadow:none;}}
+
+/* ---------- ШЛЯПА ДИЛЕРА ---------- */
+#hatBox{position:absolute;left:50%;top:6%;transform:translateX(-50%);width:clamp(56px,11vmin,92px);z-index:5;text-align:center;pointer-events:none;}
+#hatBox svg{width:100%;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5));}
+#hatBox.rattle svg{animation:hatRattle .12s infinite;}
+@keyframes hatRattle{
+  0%,100%{transform:rotate(0) translateY(0);}
+  25%{transform:rotate(-7deg) translateY(-3px);}
+  75%{transform:rotate(7deg) translateY(-2px);}
+}
+#hatLabel{font-size:clamp(8px,1.7vmin,11px);font-weight:900;opacity:.8;text-shadow:1px 1px 0 #000;}
+
+/* ---------- ЦЕНТР СТОЛА ---------- */
+#center{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);text-align:center;z-index:4;width:80%;}
+#potBox{
+  display:inline-block;font-family:var(--disp);font-size:clamp(12px,2.8vmin,19px);
+  background:var(--ink);color:var(--gold);border:3px solid var(--gold);border-radius:14px;
+  padding:3px 14px;box-shadow:0 4px 0 #000;margin-bottom:6px;
+}
+#chaosRow{display:flex;gap:6px;justify-content:center;min-height:calc(var(--cw-bot)*1.5);}
+#chaosLabel{font-size:clamp(8px,1.7vmin,11px);font-weight:900;opacity:.75;letter-spacing:2px;text-shadow:1px 1px 0 #000;margin-top:2px;}
+
+/* ---------- МЕСТА ---------- */
+.seat{position:absolute;width:clamp(86px,19vmin,150px);display:flex;flex-direction:column;align-items:center;z-index:6;}
+.seat .avatar{width:clamp(52px,11vmin,88px);height:clamp(52px,11vmin,88px);filter:drop-shadow(0 5px 4px rgba(0,0,0,.5));transition:transform .3s;}
+.seat.turn .avatar{transform:scale(1.1);filter:drop-shadow(0 0 12px var(--gold)) drop-shadow(0 5px 4px rgba(0,0,0,.5));}
+.seat.absent .avatar{filter:grayscale(1) brightness(.6);}
+.seat.absent::after{content:"🍕 УШЁЛ ЗА ПИЦЦЕЙ";position:absolute;top:42%;font-family:var(--disp);font-size:clamp(7px,1.5vmin,10px);color:var(--gold);text-shadow:1px 1px 0 #000;transform:rotate(-12deg);}
+.plate{
+  margin-top:-4px;background:var(--ink);border:2px solid rgba(255,207,63,.6);border-radius:10px;
+  padding:2px 7px;text-align:center;font-size:clamp(8px,1.9vmin,12px);font-weight:800;line-height:1.25;
+  box-shadow:0 3px 0 rgba(0,0,0,.6);max-width:100%;
+}
+.plate .nm{color:var(--gold);font-family:var(--disp);font-size:.95em;white-space:nowrap;}
+.plate .chips{color:var(--cream);}
+.plate .badges{font-size:1.05em;letter-spacing:1px;}
+.fan{display:flex;justify-content:center;margin-top:3px;min-height:calc(var(--cw-bot)*1.42);}
+.fan .card{margin:0 calc(var(--cw-bot)*-.16);}
+.bubble{
+  position:absolute;bottom:102%;left:50%;transform:translateX(-50%) scale(0);
+  background:#fff;color:var(--ink);border:2.5px solid var(--ink);border-radius:14px;
+  padding:4px 9px;font-size:clamp(9px,2vmin,13px);font-weight:800;white-space:normal;
+  width:max-content;max-width:clamp(110px,24vmin,190px);text-align:center;z-index:30;
+  box-shadow:3px 3px 0 rgba(0,0,0,.4);transition:transform .18s cubic-bezier(.34,1.56,.64,1);
+}
+.bubble.show{transform:translateX(-50%) scale(1);}
+.bubble::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--ink);}
+
+#seat0{left:50%;bottom:-1.5%;transform:translateX(-50%);}
+#seat1{left:0.5%;top:26%;}
+#seat2{left:15%;top:-3%;}
+#seat3{right:15%;top:-3%;}
+#seat4{right:0.5%;top:26%;}
+
+/* ---------- КАРТЫ ---------- */
+.card{width:var(--cw-bot);aspect-ratio:5/7;position:relative;perspective:500px;flex-shrink:0;}
+.card.me{width:var(--cw-me);}
+.card .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .45s;}
+.card.down .in{transform:rotateY(180deg);}
+.card .face,.card .back{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:12%;border:2px solid var(--ink);box-shadow:0 3px 5px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;
+}
+.card .face{background:linear-gradient(160deg,#fffdf5,#f3e9cf);}
+.card .back{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,#5b1e86 0 8px,#43126b 8px 16px);}
+.card .back::after{content:"🎪";font-size:calc(var(--cw-bot)*.5);filter:saturate(.6);}
+.card.me .back::after{font-size:calc(var(--cw-me)*.5);}
+.card .cr{position:absolute;top:4%;left:8%;font-weight:900;font-size:calc(var(--cw-bot)*.34);line-height:1;}
+.card .cb{position:absolute;bottom:4%;right:8%;font-weight:900;font-size:calc(var(--cw-bot)*.34);transform:rotate(180deg);line-height:1;}
+.card .mid{font-size:calc(var(--cw-bot)*.62);line-height:1;}
+.card.me .cr,.card.me .cb{font-size:calc(var(--cw-me)*.32);}
+.card.me .mid{font-size:calc(var(--cw-me)*.58);}
+.card.red .cr,.card.red .cb,.card.red .mid{color:#d81f45;}
+.card.blk .cr,.card.blk .cb,.card.blk .mid{color:#232034;}
+.card .sname{font-size:calc(var(--cw-bot)*.19);font-weight:900;color:var(--ink);margin-top:2px;}
+.card.dealt{animation:dealIn .4s cubic-bezier(.2,.9,.3,1.2) backwards;}
+@keyframes dealIn{from{transform:translateY(-70px) scale(.2) rotate(-160deg);opacity:0;}}
+.card.gone .in{opacity:0;transform:scale(.2) rotate(120deg);transition:all .5s;}
+.card.frozen .face{background:linear-gradient(160deg,#c9f2ff,#8fd8f7);}
+.card.frozen::after{content:"🧊";position:absolute;right:-6px;top:-8px;font-size:calc(var(--cw-bot)*.4);z-index:3;}
+.card.exposed .face{box-shadow:0 0 0 3px var(--gold),0 0 14px var(--gold);}
+.card.escaping{transition:transform 1s ease-in,opacity 1s;transform:translate(55vw,-60vh) rotate(600deg)!important;opacity:0;}
+.card.spentcard .face{filter:grayscale(1);opacity:.5;}
+
+/* ---------- ИГРОК ---------- */
+#myFan{display:flex;justify-content:center;margin-top:2px;}
+#myFan .card{margin:0 calc(var(--cw-me)*-.1);}
+#myNote{font-size:clamp(9px,2vmin,12px);font-weight:900;color:var(--cyan);text-shadow:1px 1px 0 #000;min-height:1.3em;text-align:center;}
+
+/* ---------- КОНТРОЛЫ ---------- */
+#controls{
+  background:linear-gradient(0deg,#180726,#2a0d3f);border-top:3px dashed rgba(255,207,63,.5);
+  padding:6px 8px calc(8px + env(safe-area-inset-bottom));z-index:25;
+}
+#timerBar{height:5px;background:#0006;border-radius:4px;margin:0 auto 5px;width:min(420px,90%);overflow:hidden;opacity:0;transition:opacity .2s;}
+#timerBar.on{opacity:1;}
+#timerBar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink));width:100%;}
+#btnRow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;max-width:640px;margin:0 auto;}
+.btn{
+  font-family:var(--disp);font-size:clamp(11px,2.6vmin,16px);color:var(--ink);
+  background:var(--gold);border:3px solid var(--ink);border-radius:12px;
+  padding:9px 12px;cursor:pointer;box-shadow:0 4px 0 var(--ink);min-width:72px;
+  transition:transform .05s;
+}
+.btn small{display:block;font-family:var(--body);font-weight:800;font-size:.62em;}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);}
+.btn:disabled{filter:grayscale(.9);opacity:.55;}
+.btn.pink{background:var(--pink);color:#fff;}
+.btn.cyan{background:var(--cyan);}
+.btn.red{background:#ff5340;color:#fff;}
+.btn.big{animation:btnPulse 1s infinite;}
+@keyframes btnPulse{50%{transform:scale(1.06);}}
+#turnInfo{text-align:center;font-size:clamp(10px,2.2vmin,14px);font-weight:900;margin-top:5px;min-height:1.2em;color:var(--gold);text-shadow:1px 1px 0 #000;}
+
+/* ---------- ЛОГ ДИЛЕРА ---------- */
+#dealerLog{
+  background:#0d0416;border-top:2px solid rgba(46,230,214,.4);
+  padding:4px 10px calc(4px + env(safe-area-inset-bottom));text-align:center;
+  font-size:clamp(10px,2.2vmin,13px);font-weight:700;color:var(--cyan);z-index:25;min-height:1.9em;
+}
+#dealerLog b{color:var(--gold);}
+
+/* ---------- ШТАМПЫ / ВСПЫШКИ / ТОСТЫ ---------- */
+#stamp{
+  position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:80;pointer-events:none;
+  font-family:var(--disp);font-size:clamp(26px,8vmin,64px);color:var(--gold);
+  text-shadow:3px 3px 0 var(--ink),-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),0 0 26px rgba(255,207,63,.6);
+  opacity:0;white-space:nowrap;max-width:96vw;text-align:center;
+}
+#stamp.show{animation:stampIn 1.5s ease forwards;}
+@keyframes stampIn{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(3) rotate(-14deg);}
+  18%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-5deg);}
+  28%{transform:translate(-50%,-50%) scale(1.07) rotate(-5deg);}
+  36%{transform:translate(-50%,-50%) scale(1) rotate(-5deg);}
+  80%{opacity:1;}
+  100%{opacity:0;transform:translate(-50%,-56%) scale(1) rotate(-5deg);}
+}
+#flash{position:fixed;inset:0;z-index:75;pointer-events:none;opacity:0;background:#fff;}
+#flash.go{animation:flashGo .45s;}
+#flash.dark{background:#2a0440;}
+@keyframes flashGo{0%{opacity:.9;}100%{opacity:0;}}
+#toasts{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:85;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:max-content;max-width:92vw;}
+.toast{
+  background:var(--ink);color:var(--cream);border:2px solid var(--gold);border-radius:12px;
+  padding:6px 14px;font-weight:800;font-size:clamp(11px,2.6vmin,15px);box-shadow:0 4px 0 #000;
+  animation:toastIn .25s cubic-bezier(.34,1.56,.64,1);text-align:center;
+}
+@keyframes toastIn{from{transform:translateY(-18px) scale(.6);opacity:0;}}
+.floater{
+  position:absolute;z-index:70;font-family:var(--disp);font-size:clamp(13px,3vmin,20px);
+  color:var(--gold);text-shadow:2px 2px 0 var(--ink);pointer-events:none;
+  animation:floatUp 1.3s ease-out forwards;white-space:nowrap;
+}
+@keyframes floatUp{to{transform:translateY(-70px);opacity:0;}}
+#runner{position:absolute;z-index:60;font-size:clamp(28px,7vmin,52px);pointer-events:none;display:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.5));}
+#runner.go{display:block;animation:runAcross 1.3s linear forwards;}
+@keyframes runAcross{
+  0%{left:-8%;top:58%;transform:scaleX(1);}
+  49%{transform:scaleX(1);}
+  50%{left:102%;top:44%;transform:scaleX(-1);}
+  100%{left:-8%;top:50%;transform:scaleX(-1);}
+}
+#fx{position:fixed;inset:0;z-index:90;pointer-events:none;}
+
+/* ---------- ОВЕРЛЕИ ---------- */
+.overlay{position:fixed;inset:0;background:rgba(10,3,20,.82);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(2px);}
+.overlay.hidden{display:none;}
+.panel{
+  background:var(--cream);color:var(--ink);border:5px solid var(--ink);border-radius:20px;
+  box-shadow:0 12px 0 var(--ink),0 22px 50px rgba(0,0,0,.6);
+  padding:clamp(16px,4vmin,34px);max-width:min(94vw,560px);max-height:92dvh;overflow:auto;
+  text-align:center;transform:rotate(-1deg);animation:panelIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes panelIn{from{transform:scale(.6) rotate(-7deg);opacity:0;}}
+.panel h1{font-family:var(--disp);font-size:clamp(24px,7vmin,52px);line-height:1.05;color:var(--pink);text-shadow:3px 3px 0 var(--gold),5px 5px 0 var(--ink);}
+.panel h2{font-family:var(--disp);font-size:clamp(17px,4.5vmin,30px);margin-bottom:8px;}
+.panel p{font-weight:700;margin:8px 0;font-size:clamp(12px,2.9vmin,16px);}
+.panel .tiny{font-size:clamp(9px,2.2vmin,12px);opacity:.7;}
+.wob{display:inline-block;animation:wobble 1.6s ease-in-out infinite;}
+.wob:nth-child(2n){animation-delay:.2s;}.wob:nth-child(3n){animation-delay:.4s;}
+@keyframes wobble{0%,100%{transform:rotate(-5deg) translateY(0);}50%{transform:rotate(5deg) translateY(-5px);}}
+.titleRow{display:flex;justify-content:space-between;gap:8px;border-bottom:2px dashed #0003;padding:5px 2px;font-weight:800;font-size:clamp(11px,2.7vmin,15px);}
+.titleRow .tt{color:#a1125a;font-weight:900;}
+.sceneLine{margin:7px 0;font-weight:800;font-size:clamp(12px,3vmin,16px);}
+.sceneLine b{color:#a1125a;}
+#cheatMenu{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:95;display:none;gap:8px;}
+#cheatMenu.on{display:flex;}
+@media (max-width:560px){
+  #table{height:min(60vw,340px);}
+  #seat2,#seat3{top:-6%;}
+  .plate{font-size:8.5px;padding:1px 5px;}
+  .btn{min-width:60px;padding:8px 8px;}
+}
+@media (max-height:560px){
+  #hatBox{display:none;}
+  #ribbon{padding:2px 8px;}
+}
+</style>
+</head>
+<body>
+<div id="dust"></div>
+<div id="stage">
+
+  <div id="ribbon">
+    <span id="roundTag">РАУНД 0/8</span>
+    <div id="ruleBox">
+      <div id="ruleName">🎰 БЕЗУМНЫЙ ПОКЕР</div>
+      <div id="ruleDesc">правила выдумываются на ходу</div>
+    </div>
+    <span style="display:flex;gap:6px;">
+      <button class="ribbonBtn" id="btnRestart" title="заново">🔄</button>
+      <button class="ribbonBtn" id="btnSound">🔊</button>
+    </span>
+  </div>
+
+  <div id="tableWrap">
+    <div id="table">
+      <div id="hatBox">
+        <svg viewBox="0 0 100 80">
+          <ellipse cx="50" cy="66" rx="46" ry="11" fill="#1c0b2b" stroke="#ffcf3f" stroke-width="3"/>
+          <rect x="26" y="12" width="48" height="52" rx="8" fill="#2a1140" stroke="#ffcf3f" stroke-width="3"/>
+          <rect x="26" y="44" width="48" height="10" fill="#ff2e88"/>
+          <text x="50" y="38" text-anchor="middle" font-size="16">✨</text>
+        </svg>
+        <div id="hatLabel">ДИЛЕР</div>
+      </div>
+      <div id="center">
+        <div id="potBox">БАНК: 0 💰</div>
+        <div id="chaosRow"></div>
+        <div id="chaosLabel">— С Т О Л —</div>
+      </div>
+    </div>
+    <div id="seats"></div>
+    <div id="runner">🐔</div>
+  </div>
+
+  <div id="controls">
+    <div id="timerBar"><i></i></div>
+    <div id="btnRow">
+      <button class="btn pink" id="bCluck" style="display:none;">КУДАХ! 🐔</button>
+      <button class="btn red" id="bFold">ФОЛД <small>🫣 сдаться</small></button>
+      <button class="btn" id="bCall">ЧЕК <small>✋ бесплатно</small></button>
+      <button class="btn cyan" id="bRaise">РЕЙЗ <small>🔥 +20</small></button>
+      <button class="btn pink" id="bAllin">ALL-IN <small>🚀 всё!</small></button>
+      <button class="btn" id="bCheat" style="background:#b46cff;color:#fff;">🍕×3 <small>чит</small></button>
+    </div>
+    <div id="turnInfo">…</div>
+  </div>
+
+  <div id="dealerLog"><b>🎩 Дилер:</b> <span id="dealerText">Добро пожаловать в казино «Три Петуха». Фишки стерильные.</span></div>
+</div>
+
+<div id="stamp"></div>
+<div id="flash"></div>
+<div id="toasts"></div>
+<div id="cheatMenu">
+  <button class="btn cyan" id="cPeek">👁 ПОДГЛЯДЕТЬ</button>
+  <button class="btn pink" id="cSwap">🔄 ПОДМЕНИТЬ</button>
+</div>
+<canvas id="fx"></canvas>
+
+<!-- СТАРТ -->
+<div class="overlay" id="ovStart">
+  <div class="panel">
+    <h1><span class="wob">Б</span><span class="wob">Е</span><span class="wob">З</span><span class="wob">У</span><span class="wob">М</span><span class="wob">Н</span><span class="wob">Ы</span><span class="wob">Й</span><br>ПОКЕР</h1>
+    <p>Техасский холдем, который сходил в отпуск в Лас-Вегас и вернулся <b>не таким</b>.</p>
+    <p>🎩 Каждый раунд — новое безумное правило.<br>🐔 Карты едят, взрывают и воруют.<br>🤡 Боты творят дичь и уходят за пиццей.</p>
+    <p class="tiny" id="recordLine"></p>
+    <button class="btn big" id="btnPlay" style="font-size:clamp(16px,4.5vmin,26px);padding:12px 26px;">🎰 ПОЕХАЛИ!</button>
+    <p class="tiny">побеждает тот, кто выжил и просмеялся</p>
+  </div>
+</div>
+
+<!-- СЦЕНА МЕЖДУ РАУНДАМИ -->
+<div class="overlay hidden" id="ovScene">
+  <div class="panel">
+    <h2 id="sceneTitle">ПЕРЕРЫВ</h2>
+    <div id="sceneBody"></div>
+  </div>
+</div>
+
+<!-- ФИНАЛ -->
+<div class="overlay hidden" id="ovEnd">
+  <div class="panel">
+    <h2 id="endHead">🏆</h2>
+    <div id="endRows"></div>
+    <p id="endQuote" style="font-style:italic;"></p>
+    <button class="btn big" id="btnAgain">🔁 ЕЩЁ ПАРТИЮ!</button>
+    <button class="btn cyan" id="btnShare">📤 СКИНУТЬ В ЧАТ</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   0. УТИЛИТЫ
+============================================================ */
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const ri=n=>Math.floor(Math.random()*n);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[ri(a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=ri(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const LS={
+  get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+};
+
+/* ============================================================
+   1. ЗВУК — весь синтез, никаких файлов
+============================================================ */
+const SND={
+  ctx:null,on:LS.get('mp_sound',true),
+  ac(){ if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}} if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume(); return this.ctx;},
+  tone(f,dur,type='sine',vol=.18,slide=0){
+    if(!this.on)return;const c=this.ac();if(!c)return;
+    const o=c.createOscillator(),g=c.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,c.currentTime);
+    if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),c.currentTime+dur);
+    g.gain.setValueAtTime(vol,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
+    o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+dur);
+  },
+  noise(dur,vol=.2,fq=1000,type='highpass'){
+    if(!this.on)return;const c=this.ac();if(!c)return;
+    const len=c.sampleRate*dur,buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+    const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+    s.buffer=buf;f.type=type;f.frequency.value=fq;
+    g.gain.setValueAtTime(vol,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
+    s.connect(f).connect(g).connect(c.destination);s.start();
+  },
+  ding(){this.tone(1318,.09,'triangle',.22);setTimeout(()=>this.tone(1760,.14,'triangle',.18),55);},
+  flip(){this.noise(.07,.15,2400);},
+  whoosh(){this.noise(.3,.12,600,'bandpass');},
+  tick(){this.tone(880+ri(300),.03,'square',.06);},
+  boom(){this.tone(64,.6,'sine',.5,-40);this.noise(.5,.4,300,'lowpass');},
+  cluck(){this.tone(740,.08,'square',.2,-300);setTimeout(()=>this.tone(620,.09,'square',.2,-260),100);setTimeout(()=>this.tone(500,.14,'square',.18,-320),210);},
+  drum(){for(let i=0;i<9;i++)setTimeout(()=>{this.tone(150,.07,'sine',.3,-90);this.noise(.04,.12,500,'lowpass');},i*95);},
+  applause(){if(!this.on)return;for(let i=0;i<26;i++)setTimeout(()=>this.noise(.05,.1,1500+ri(2500),'bandpass'),i*60+ri(60));},
+  sad(){this.tone(392,.25,'sawtooth',.12,-60);setTimeout(()=>this.tone(311,.4,'sawtooth',.12,-80),220);},
+  jingle(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.tone(f,.16,'triangle',.2),i*110));},
+  crunch(){for(let i=0;i<3;i++)setTimeout(()=>this.noise(.08,.22,900,'lowpass'),i*90);},
+  shout(txt){
+    if(!this.on)return;
+    try{
+      if('speechSynthesis' in window){
+        const u=new SpeechSynthesisUtterance(txt);u.lang='ru-RU';u.rate=1.1;u.pitch=.5;u.volume=.9;
+        speechSynthesis.speak(u);
+      }else this.tone(180,.5,'sawtooth',.3,-60);
+    }catch(e){}
+  }
+};
+document.addEventListener('pointerdown',()=>SND.ac(),{once:true});
+
+/* ============================================================
+   2. ДАННЫЕ: КАРТЫ, ПРАВИЛА, СПЕЦКАРТЫ, ПРОКЛЯТИЯ
+============================================================ */
+const SUITS=['♠','♥','♦','♣'];
+const RED=new Set(['♥','♦']);
+const RNAMES={11:'В',12:'Д',13:'К',14:'Т'};
+const rName=r=>RNAMES[r]||String(r);
+const EMOJI_RANK={2:'🐣',3:'🌱',4:'🍄',5:'🐸',6:'🐝',7:'🎲',8:'🐙',9:'🦉',10:'🦖',11:'🤴',12:'👸',13:'🫅',14:'👹'};
+
+const SPECIALS={
+  joker:{e:'🃏',n:'Джокер',d:'становится лучшей картой'},
+  rooster:{e:'🐔',n:'Петух',d:'съедает карту'},
+  bomb:{e:'💣',n:'Бомба',d:'взрывает масть'},
+  portal:{e:'🌀',n:'Портал',d:'выворачивает масть'},
+  banana:{e:'🍌',n:'Банан',d:'подсказывает сброс'},
+  reverse:{e:'🔄',n:'Реверс',d:'слабые побеждают'},
+  hat:{e:'🎩',n:'Шляпа',d:'прячет карту'},
+  clover:{e:'🍀',n:'Клевер',d:'удваивает следующий эффект'},
+  eye:{e:'👁️',n:'Глаз',d:'видит всех насквозь'},
+  hole:{e:'🕳️',n:'Дыра',d:'в ней деньги'},
+  octopus:{e:'🐙',n:'Осьминог',d:'копирует эффект'},
+  magnet:{e:'🧲',n:'Магнит',d:'тянет чужое'},
+  bone:{e:'🦴',n:'Кость',d:'переброс'},
+  rain:{e:'🌧️',n:'Дождь',d:'одна масть на всех'},
+  snail:{e:'🐌',n:'Улитка',d:'тормозит'},
+  clown:{e:'🤡',n:'Клоун',d:'меняет карты местами'},
+  duck:{e:'🦆',n:'Утёнок',d:'кря'},
+  ice:{e:'🧊',n:'Лёд',d:'замораживает'},
+  fire:{e:'🔥',n:'Огонь',d:'жжёт слабое'},
+  crown:{e:'👑',n:'Корона',d:'+1 к картам'},
+};
+const SPEC_POOL=['joker','joker','rooster','rooster','bomb','portal','banana','reverse','hat','clover','eye','hole','octopus','magnet','bone','rain','clown','duck','ice','fire','crown','snail'];
+
+const RULES=[
+  {id:'reverse',e:'🔄',n:'НАОБОРОТ',d:'Побеждает САМАЯ СЛАБАЯ рука. Лузеры, ликуйте!'},
+  {id:'spadesWild',e:'♠',n:'ПИКИ — ДЖОКЕРЫ',d:'Любая пика теперь какая захочет карта.'},
+  {id:'sixth',e:'6️⃣',n:'ВСЕМ ПО ШЕСТОЙ',d:'Дилер раздаёт всем по шестой карте. Щедрость!'},
+  {id:'noPairs',e:'🚫',n:'ПАРЫ ЗАПРЕЩЕНЫ',d:'Пары объявлены вне закона. Полиция нравов следит.'},
+  {id:'colors',e:'🎨',n:'ЦВЕТА ПОМЕНЯЛИСЬ',d:'Красное стало чёрным. Флеши сошли с ума.'},
+  {id:'passHands',e:'🔀',n:'ОБМЕН РУКАМИ',d:'Все передают карты соседу слева. Никто не доволен.'},
+  {id:'wildSuit',e:'🌟',n:'ДИКАЯ МАСТЬ',d:'Одна масть стала джокером. Какая — дилер помнит.'},
+  {id:'twoAce',e:'2️⃣',n:'ДВОЙКИ — ТУЗЫ',d:'Двойки прошли курсы повышения квалификации.'},
+  {id:'aceTwo',e:'📉',n:'ТУЗЫ — ДВОЙКИ',d:'Тузы депремированы. Профсоюз молчит.'},
+  {id:'doublePot',e:'💰',n:'ДВОЙНОЙ БАНК',d:'Выигрыш удваивается. Фишки появятся из воздуха.'},
+  {id:'allSee',e:'👀',n:'ВСЕ ВИДЯТ ВСЁ',d:'Все карты раскрыты. Приватность — для трусов.'},
+  {id:'future',e:'🔮',n:'РУКА ИЗ БУДУЩЕГО',d:'Вы увидите карту, которая упадёт на стол.'},
+  {id:'oldDealer',e:'👴',n:'СТАРЫЙ ДИЛЕР',d:'Дилер что-то забыл. Правило может «вспомниться».'},
+  {id:'mercy',e:'🥺',n:'ЖАЛОСТЬ ДИЛЕРА',d:'Последнему выплатят из жалости. Унизительно, но приятно.'},
+  {id:'emoji',e:'😵',n:'ЭМОДЗИ-УЖАС',d:'Карты периодически забывают, кто они.'},
+  {id:'secret',e:'🤫',n:'СЕКРЕТНОЕ ПРАВИЛО',d:'Узнаете на вскрытии. Дилер хитро щурится.'},
+];
+const SECRETS=[
+  {id:'hearts',say:'Побеждает тот, у кого больше ♥. Всё!',fn:p=>[10+p.hand.filter(c=>!c.gone&&c.suit==='♥').length]},
+  {id:'sum',say:'Побеждает самая большая СУММА карт. Тупо, но честно.',fn:p=>[p.hand.filter(c=>!c.gone).reduce((s,c)=>s+(c.rank||0),0)]},
+  {id:'faces',say:'Побеждает тот, у кого больше картинок (В/Д/К/Т)!',fn:p=>[p.hand.filter(c=>!c.gone&&c.rank>=11).length*10]},
+  {id:'nospades',say:'Побеждает тот, у кого МЕНЬШЕ пик. Пиццы, то есть пик.',fn:p=>[30-p.hand.filter(c=>!c.gone&&c.suit==='♠').length*10]},
+  {id:'chicken',say:'Побеждает владелец самой МЛАДШЕЙ карты. Скромность — золото.',fn:p=>{const h=p.hand.filter(c=>!c.gone);return h.length?[40-Math.min(...h.map(c=>c.rank||20))]:[0];}},
+];
+
+const CURSES={
+  chicken:{e:'🐔',n:'Курица',d:'кудахчь перед каждой ставкой'},
+  mute:{e:'🤐',n:'Молчун',d:'говори только эмодзи'},
+  mirror:{e:'🔄',n:'Зеркало',d:'видишь чужие карты, а свои — нет'},
+  hatter:{e:'🎩',n:'Шляпник',d:'твои карты видят ВСЕ'},
+  snail:{e:'🐌',n:'Улитка',d:'кнопки прогреваются 5 секунд'},
+  clown:{e:'🎪',n:'Клоун',d:'выигрыш урезан вдвое'},
+  duck:{e:'🦆',n:'Утёнок',d:'фолд запрещён. кря.'},
+};
+
+const CAT_NAMES=['Рука украдена 😱','Старшая карта','Пара','Две пары','Тройка','Стрит','Флеш','Фулл-хаус','Каре','СТРИТ-ФЛЕШ!!'];
+
+/* ---------- БОТЫ ---------- */
+const BOTS=[
+  {id:1,name:'Боря',emoji:'💪'},
+  {id:2,name:'Люся',emoji:'🧣'},
+  {id:3,name:'Гоша',emoji:'🤓'},
+  {id:4,name:'Тётя Зина',emoji:'👵'},
+];
+const LINES={
+  1:{bet:['Ставлю и не парюсь.','Фишки на стол!','Лёгкие деньги.','Мне карта прёт.'],
+     allin:['ВА-БАНК И БЕЗ РАЗГОВОРОВ!','Я родился с парой на руках!','ВСЁ! Даже мелочь!'],
+     fold:['Ладно, ухожу красиво.','Это была стратегия.'],
+     win:['Говорил же — я гений!','Кто тут папа?!'],
+     lose:['Да вы жулики!','Это была разминка.'],
+     suspect:['Что-то ты слишком часто выигрываешь…','Я за тобой слежу. 👀'],
+     effect:['КТО СЪЕЛ МОЙ ТУЗ?!','Эй, это была моя карта!']},
+  2:{bet:['Я боюсь, но ставлю…','Только не смотрите в мои карты!','Ой-ой-ой…'],
+     allin:['ААААА! ВА-БАНК!!!','Простите меня ВСЕ!'],
+     fold:['Всё, я в домике. 🏠','Нет-нет-нет-нет!'],
+     win:['Я?! ПРАВДА я?! Ой мамочки!'],
+     lose:['Так и знала…','Я чувствовала беду…'],
+     suspect:['У тебя подозрительно хорошие карты…'],
+     effect:['ААА! Что происходит?!','Я знала! Я ЧУВСТВОВАЛА!']},
+  3:{bet:['Карта молчит. И я молчу.','Ставлю на вечность.','Две карты — это уже философия.'],
+     allin:['Всё суета. Кроме ва-банка.','Бытие определяет ставку.'],
+     fold:['Ухожу в астрал.'],
+     win:['Победа — лишь иллюзия. Но приятная.'],
+     lose:['Поражение закаляет дух.'],
+     suspect:['Твоя удача статистически невозможна…'],
+     effect:['Интересный поворот бытия…','Экзистенциальный кризис карт.']},
+  4:{bet:['Рискни, милок!','Ставлю как в 1974-м!','Фишечки мои родимые…'],
+     allin:['ВА-БАНК, деточки! Пенсия не ждёт!','В моё время так не смели!'],
+     fold:['Ох, поясница не велит.'],
+     win:['Внучата, я в плюсе!','А бабушка ещё ого-го!'],
+     lose:['Ох обманули бабушку…'],
+     suspect:['Что-то ты, милка, мухлюешь…'],
+     effect:['Кудах-кудах, что творится!','В моё время карты были послушнее!']},
+};
+
+const DEALER_SAYS=[
+  'Фишки стерильные, не облизывайте.',
+  'Я работаю 36 часов подряд. Это нормально.',
+  'Правила утверждены вчера. Утра не было.',
+  'Касса закрыта. Навсегда.',
+  'Петух — уважаемый сотрудник казино.',
+  'Не смотрите дилеру в глаза.',
+  'Выход там же, где вход. Теоретически.',
+  'Сегодня без обмана. Ну почти.',
+  'Банк может лопнуть. Как и ваши надежды.',
+  'Карты тасованы силой мысли.',
+];
+const SCENES=[
+  {t:'⚡ ССОРА',l:[[1,'Люся, зачем ты поставила МОИ фишки?!'],[2,'Они лежали одиноко… им было грустно…']]},
+  {t:'🤝 ПЕРЕМИРИЕ',l:[[4,'Боря, держи пирожок с ливером.'],[1,'Ладно. Мир. Но пирожков два.']]},
+  {t:'🕵️ СГОВОР',l:[[3,'Если Зина снова идёт ва-банк — все фолдят.'],[4,'Я ВСЁ СЛЫШУ, ГОША!']]},
+  {t:'🔥 СКАНДАЛ',l:[[2,'Я видела у Бори туз в рукаве!'],[1,'Это МОЙ рукав и МОЙ туз!']]},
+  {t:'🧘 ДЗЕН',l:[[3,'Карты — лишь тени на стене покера…'],[1,'Гоша, не начинай.']]},
+  {t:'📊 АНАЛИТИКА',l:[[4,'Я посчитала: выигрывает тот, кто выигрывает.'],[3,'Гениально. Просто. Страшно.']]},
+];
+
+/* ============================================================
+   3. СОСТОЯНИЕ ИГРЫ
+============================================================ */
+const BLIND=10, RAISE=20, MAX_RAISES=3, ROUNDS=8;
+let G={};
+function freshPlayer(def,human){
+  return Object.assign({human:!!human,chips:100,absurd:0,pizza:human?3:0,hand:[],folded:false,allin:false,
+    contrib:0,acted:false,mood:0,curses:[],absent:false,forcedRaise:false,snailBit:false,
+    stats:{wins:0,losses:0,allins:0,folds:0,cheats:0,cursesTaken:0,chaosWins:0}},def);
+}
+function newGame(){
+  G={
+    epoch:(G.epoch||0)+1, round:0, phase:'idle',
+    players:[freshPlayer({id:0,name:'ВЫ',emoji:'😎'},true),...BOTS.map(b=>freshPlayer(b))],
+    deck:[],tableCards:[],pot:0,currentBet:BLIND,raises:0,
+    rule:null,mods:{},playerResolve:null,playerWinStreak:0,
+    highlights:[],roundEnded:false,cheatUsedRound:false,
+  };
+}
+const alive=()=>true;
+const pl=i=>G.players[i];
+const stayers=()=>G.players.filter(p=>!p.folded&&!p.absent);
+
+/* ============================================================
+   4. АВАТАРЫ БОТОВ (РИСОВАННЫЕ, С ЭМОЦИЯМИ)
+============================================================ */
+const LOOK={
+  1:{skin:'#f2b183',acc:'chain'},
+  2:{skin:'#ffd9c0',acc:'scarf'},
+  3:{skin:'#d8c39a',acc:'glasses'},
+  4:{skin:'#f7c99b',acc:'babushka'},
+};
+const EMO_DEF={
+  neutral:{eye:'dot',brow:0,mouth:'flat'},
+  happy:{eye:'dot',brow:-2,mouth:'grin'},
+  shocked:{eye:'wide',brow:-5,mouth:'o'},
+  sad:{eye:'dot',brow:4,mouth:'frown'},
+  angry:{eye:'slit',brow:7,mouth:'teeth'},
+  smirk:{eye:'dot',brow:-3,mouth:'smirk'},
+  eat:{eye:'happy',brow:0,mouth:'o'},
+  suspect:{eye:'slit',brow:5,mouth:'flat'},
+};
+function faceSVG(botId,emo='neutral'){
+  const L=LOOK[botId];
+  if(!L)return ''; // Игроку лицо не нужно
+  const E=EMO_DEF[emo]||EMO_DEF.neutral;
+  let acc='',extra='';
+  if(L.acc==='chain')acc=`<path d="M28 100 q32 18 64 0" stroke="#ffcf3f" stroke-width="7" fill="none"/><circle cx="60" cy="107" r="6" fill="#ffcf3f" stroke="#1c0b2b" stroke-width="2"/>`;
+  if(L.acc==='scarf')acc=`<path d="M18 40 Q60 2 102 40 L102 30 Q60 -8 18 30 Z" fill="#d81f45"/><circle cx="40" cy="26" r="3" fill="#fff"/><circle cx="66" cy="18" r="3" fill="#fff"/><circle cx="86" cy="28" r="3" fill="#fff"/>`;
+  if(L.acc==='glasses')acc=`<circle cx="44" cy="58" r="13" fill="rgba(180,230,255,.35)" stroke="#1c0b2b" stroke-width="3"/><circle cx="78" cy="58" r="13" fill="rgba(180,230,255,.35)" stroke="#1c0b2b" stroke-width="3"/><line x1="57" y1="58" x2="65" y2="58" stroke="#1c0b2b" stroke-width="3"/>`;
+  if(L.acc==='babushka')acc=`<path d="M16 46 Q60 -6 104 46 L96 52 Q60 12 24 52 Z" fill="#7a4fd0"/><circle cx="60" cy="14" r="7" fill="#7a4fd0"/><circle cx="24" cy="78" r="5" fill="#ffcf3f"/><circle cx="96" cy="78" r="5" fill="#ffcf3f"/><circle cx="34" cy="74" r="6" fill="#ff8fa3" opacity=".7"/><circle cx="86" cy="74" r="6" fill="#ff8fa3" opacity=".7"/>`;
+  const eye=(x)=>{
+    if(E.eye==='dot')return `<circle cx="${x}" cy="58" r="4.5" fill="#1c0b2b"/>`;
+    if(E.eye==='wide')return `<circle cx="${x}" cy="58" r="8" fill="#fff" stroke="#1c0b2b" stroke-width="2.5"/><circle cx="${x}" cy="58" r="3" fill="#1c0b2b"/>`;
+    if(E.eye==='slit')return `<rect x="${x-6}" y="56" width="12" height="4" rx="2" fill="#1c0b2b"/>`;
+    if(E.eye==='happy')return `<path d="M${x-6} 60 q6 -8 12 0" stroke="#1c0b2b" stroke-width="3" fill="none"/>`;
+    return '';
+  };
+  const brow=(x,dir)=>`<rect x="${x-8}" y="${45+E.brow*dir}" width="16" height="3.6" rx="1.8" fill="#1c0b2b" transform="rotate(${E.brow*4*dir} ${x} 46)"/>`;
+  let mouth='';
+  if(E.mouth==='flat')mouth=`<line x1="46" y1="82" x2="74" y2="82" stroke="#1c0b2b" stroke-width="3.5" stroke-linecap="round"/>`;
+  if(E.mouth==='grin')mouth=`<path d="M42 78 q18 18 36 0 z" fill="#7a1030" stroke="#1c0b2b" stroke-width="3"/><path d="M48 79 h24 v4 h-24 z" fill="#fff"/>`;
+  if(E.mouth==='o')mouth=`<ellipse cx="60" cy="84" rx="8" ry="10" fill="#7a1030" stroke="#1c0b2b" stroke-width="3"/>`;
+  if(E.mouth==='frown')mouth=`<path d="M44 88 q16 -14 32 0" stroke="#1c0b2b" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+  if(E.mouth==='teeth')mouth=`<rect x="44" y="78" width="32" height="10" rx="3" fill="#fff" stroke="#1c0b2b" stroke-width="3"/><line x1="52" y1="78" x2="52" y2="88" stroke="#1c0b2b" stroke-width="2"/><line x1="60" y1="78" x2="60" y2="88" stroke="#1c0b2b" stroke-width="2"/><line x1="68" y1="78" x2="68" y2="88" stroke="#1c0b2b" stroke-width="2"/>`;
+  if(E.mouth==='smirk')mouth=`<path d="M46 84 q14 8 30 -4" stroke="#1c0b2b" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+  return `<svg viewBox="0 0 120 120">
+    <circle cx="60" cy="62" r="46" fill="${L.skin}" stroke="#1c0b2b" stroke-width="4"/>
+    ${acc}
+    ${brow(44,1)}${brow(78,-1)}
+    ${eye(44)}${eye(78)}
+    <path d="M58 66 q2 6 -2 8" stroke="#c98a5e" stroke-width="3" fill="none"/>
+    ${mouth}${extra}
+  </svg>`;
+}
+function setEmo(p,emo){
+  if(!p||p.human)return;
+  const seat=$('#seat'+p.id);if(!seat)return;
+  const av=seat.querySelector('.avatar');if(!av)return;
+  av.innerHTML=faceSVG(p.id,emo);
+}
+
+/* ============================================================
+   5. ПОСТРОЕНИЕ СЦЕНЫ
+============================================================ */
+function buildScene(){
+  const seats=$('#seats');seats.innerHTML='';
+  const wrap=$('#tableWrap');
+  const positions={0:'left:50%;bottom:-1%;transform:translateX(-50%);',1:'',2:'',3:'',4:''};
+  for(const p of G.players){
+    const s=document.createElement('div');
+    s.className='seat';s.id='seat'+p.id;s.style.cssText=positions[p.id];
+    s.innerHTML=`
+      <div class="bubble" id="bub${p.id}"></div>
+      <div class="avatar">${p.human?'':faceSVG(p.id,'neutral')}</div>
+      <div class="plate">
+        <div class="nm">${p.human?'😎 ':''}${p.name}</div>
+        <div class="chips">💰<span id="ch${p.id}">${p.chips}</span> 🤪<span id="ab${p.id}">${p.absurd}</span></div>
+        <div class="badges" id="bd${p.id}"></div>
+      </div>
+      <div class="fan" id="fan${p.id}"></div>`;
+    seats.appendChild(s);
+  }
+  // гирлянда по периметру стола
+  const table=$('#table');
+  table.querySelectorAll('.bulb,.sticker').forEach(e=>e.remove());
+  for(let i=0;i<26;i++){
+    const b=document.createElement('div');b.className='bulb'+(i%2?' b2':'');
+    const t=i/26*Math.PI*2;
+    b.style.left=(50+49*Math.cos(t))+'%';b.style.top=(50+49*Math.sin(t))+'%';
+    table.appendChild(b);
+  }
+  const stickers=[['🍕','12%','70%',-12],['🐔','82%','22%',10],['💸','20%','18%',-8],['🎲','74%','76%',14],['🧻','46%','86%',6]];
+  for(const[em,l,t,r]of stickers){
+    const d=document.createElement('div');d.className='sticker';d.style.left=l;d.style.top=t;d.style.transform=`rotate(${r}deg)`;
+    d.innerHTML=em+(r%2?'':'');
+    table.appendChild(d);
+  }
+  const dust=$('#dust');dust.innerHTML='';
+  for(let i=0;i<12;i++){
+    const sp=document.createElement('span');const sz=rnd(2,5);
+    sp.style.cssText=`left:${rnd(0,100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(9,22)}s;animation-delay:${rnd(0,12)}s;`;
+    dust.appendChild(sp);
+  }
+}
+
+/* ============================================================
+   6. ОТРИСОВКА КАРТ И ИГРОКОВ
+============================================================ */
+function cardHTML(c,faceUp,isMe){
+  const sp=c.special?SPECIALS[c.special]:null;
+  const red=RED.has(c.suit);
+  let face;
+  if(sp){
+    face=`<div class="cr" style="color:#1c0b2b;">${sp.e}</div><div class="mid">${sp.e}</div><div class="sname">${sp.n}</div><div class="cb" style="color:#1c0b2b;">${sp.e}</div>`;
+  }else{
+    face=`<div class="cr">${rName(c.rank)}${c.suit}</div><div class="mid">${c.suit}</div><div class="cb">${rName(c.rank)}${c.suit}</div>`;
+  }
+  return `<div class="card ${isMe?'me':''} ${faceUp?'':'down'} ${red?'red':'blk'} ${c.spentcard?'spentcard':''} ${c.frozen?'frozen':''} ${c.exposed?'exposed':''}" data-id="${c.id}">
+    <div class="in"><div class="face">${face}</div><div class="back"></div></div>
+  </div>`;
+}
+function shouldFaceUp(p,c){
+  if(c.gone)return false;
+  if(p.human){
+    if(G.phase==='showdown'&&!p.folded)return true;
+    if(p.curses.some(x=>x==='mirror'))return G.phase!=='bet';
+    return true;
+  }
+  if(G.phase==='showdown'&&!p.folded)return true;
+  if(G.rule&&G.rule.id==='allSee')return true;
+  return !!c.revealed;
+}
+function renderHand(p,anim=false){
+  const fan=$('#fan'+p.id);if(!fan)return;
+  const cards=p.hand.filter(c=>!c.gone);
+  fan.innerHTML=cards.map((c,i)=>{
+    const up=shouldFaceUp(p,c);
+    return `<div style="animation-delay:${anim?i*70:0}ms;" class="dealtwrap">${cardHTML(c,up,p.human)}</div>`;
+  }).join('');
+  fan.querySelectorAll('.card').forEach(el=>{if(anim)el.classList.add('dealt');});
+}
+function renderAll(){for(const p of G.players)renderHand(p);}
+function updatePlates(){
+  for(const p of G.players){
+    $('#ch'+p.id).textContent=p.chips;
+    $('#ab'+p.id).textContent=p.absurd;
+    $('#bd'+p.id).textContent=p.curses.map(c=>CURSES[c].e).join('')+(p.allin?'🚀':'');
+    const seat=$('#seat'+p.id);
+    seat.classList.toggle('absent',p.absent);
+    if(p.human){
+      $('#bCheat').innerHTML=`🍕×${p.pizza} <small>чит</small>`;
+      $('#myNote')&&( $('#myNote').textContent = p.curses.length?('ПРОКЛЯТИЯ: '+p.curses.map(c=>CURSES[c].e+' '+CURSES[c].n).join(', ')):'' );
+    }
+  }
+  $('#potBox').textContent=`БАНК: ${G.pot} 💰`+(G.mods.doublePot?' ×2!':'');
+}
+function dealerSay(t){$('#dealerText').textContent=t;}
+function bubble(p,txt,ms=2400){
+  const b=$('#bub'+p.id);if(!b)return;
+  b.textContent=txt;b.classList.add('show');
+  clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),ms);
+}
+function toast(t,ms=2300){
+  const d=document.createElement('div');d.className='toast';d.textContent=t;
+  $('#toasts').appendChild(d);setTimeout(()=>d.remove(),ms);
+}
+function stampShow(t){
+  const s=$('#stamp');s.textContent=t;s.classList.remove('show');void s.offsetWidth;s.classList.add('show');
+}
+function flash(dark=false){
+  const f=$('#flash');f.className='';f.classList.toggle('dark',dark);void f.offsetWidth;f.classList.add('go');
+}
+function shake(){const s=$('#stage');s.classList.remove('shaking');void s.offsetWidth;s.classList.add('shaking');}
+function floatText(p,txt){
+  const seat=$('#seat'+p.id);if(!seat)return;
+  const f=document.createElement('div');f.className='floater';f.textContent=txt;
+  f.style.left='50%';f.style.top='10%';f.style.transform='translateX(-50%)';
+  seat.style.position='absolute';seat.appendChild(f);
+  setTimeout(()=>f.remove(),1400);
+}
+function setTurn(p,on){$('#seat'+p.id).classList.toggle('turn',on);}
+function runRooster(){
+  const r=$('#runner');r.classList.remove('go');void r.offsetWidth;r.classList.add('go');
+  setTimeout(()=>r.classList.remove('go'),1400);
+}
+
+/* ============================================================
+   7. КОЛОДА И РАЗДАЧА
+============================================================ */
+let UID=1;
+function buildDeck(){
+  const d=[];
+  for(const s of SUITS)for(let r=2;r<=14;r++)d.push({id:UID++,suit:s,rank:r,special:null});
+  for(const t of SPEC_POOL)d.push({id:UID++,suit:pick(SUITS),rank:1,special:t});
+  return shuffle(d);
+}
+const drawCard=()=>G.deck.length?G.deck.pop():{id:UID++,suit:pick(SUITS),rank:ri(13)+2,special:null};
+
+async function dealAll(){
+  for(const p of G.players){p.hand=[];if(p.absent)continue;}
+  for(let k=0;k<5;k++){
+    for(const p of G.players){
+      if(p.absent)continue;
+      p.hand.push(drawCard());
+      renderHand(p,true);
+      SND.flip();
+    }
+    await sleep(90);
+  }
+  updatePlates();
+}
+
+/* ============================================================
+   8. ОЦЕНКА РУК (С УЧЁТОМ БЕЗУМИЯ)
+============================================================ */
+function buildCtx(){
+  const ctx={wildSuit:null,wildRanks:new Set(),noPairs:false,colorFlip:false,aceTwo:false,twoAce:false,
+    reversed:false,rainSuit:null,crown:new Set(),exclude:new Set()};
+  const r=G.rule;
+  if(r){
+    if(r.id==='spadesWild')ctx.wildSuit='♠';
+    if(r.id==='wildSuit')ctx.wildSuit=G.mods.wildSuit||'♣';
+    if(r.id==='noPairs')ctx.noPairs=true;
+    if(r.id==='colors')ctx.colorFlip=true;
+    if(r.id==='twoAce')ctx.wildRanks.add(2);
+    if(r.id==='aceTwo')ctx.aceTwo=true;
+    if(r.id==='reverse')ctx.reversed=true;
+  }
+  if(G.mods.forceReversed)ctx.reversed=true;
+  if(G.mods.rainSuit)ctx.rainSuit=G.mods.rainSuit;
+  if(G.mods.wildSuitExtra)ctx.wildSuit=G.mods.wildSuitExtra;
+  G.mods.crown.forEach(id=>ctx.crown.add(id));
+  G.mods.exclude.forEach(id=>ctx.exclude.add(id));
+  return ctx;
+}
+function effCard(c,ctx){
+  if(c.special==='joker')return{rank:14,suit:'♠',wild:true,id:c.id};
+  let rank=c.rank||1,suit=c.suit||'♠';
+  if(ctx.aceTwo&&rank===14)rank=2;
+  if(ctx.twoAce&&rank===2)rank=14;
+  if(ctx.colorFlip){const m={'♥':'♠','♦':'♣'};if(m[suit])suit=m[suit];}
+  if(ctx.rainSuit)suit=ctx.rainSuit;
+  const wild=(suit===ctx.wildSuit)||(ctx.wildRanks.has(rank));
+  return{rank,suit,wild,id:c.id};
+}
+function straightHigh(rs){
+  if(rs.length<5)return 0;
+  for(let i=0;i+4<rs.length;i++)if(rs[i]-rs[i+4]===4)return rs[i];
+  if([14,5,4,3,2].every(x=>rs.includes(x)))return 5;
+  return 0;
+}
+function score5(cs){
+  if(!cs.length)return{cat:0,score:[0]};
+  const n=cs.length;
+  const ranks=cs.map(c=>c.rank).sort((a,b)=>b-a);
+  const suits=cs.map(c=>c.suit);
+  const flush=n===5&&suits.every(s=>s===suits[0]);
+  const uniq=[...new Set(ranks)];
+  const sh=straightHigh(uniq);
+  const straight=n===5&&sh>0;
+  const cnt={};ranks.forEach(r=>cnt[r]=(cnt[r]||0)+1);
+  const groups=Object.entries(cnt).map(([r,c])=>({r:+r,c})).sort((a,b)=>b.c-a.c||b.r-a.r);
+  let cat,tb;
+  if(flush&&straight){cat=9;tb=[sh];}
+  else if(groups[0].c===4){cat=8;tb=[groups[0].r,groups[1].r];}
+  else if(groups[0].c===3&&groups[1]&&groups[1].c>=2){cat=7;tb=[groups[0].r,groups[1].r];}
+  else if(flush){cat=6;tb=ranks;}
+  else if(straight){cat=5;tb=[sh];}
+  else if(groups[0].c===3){cat=4;tb=[groups[0].r,...groups.slice(1).map(g=>g.r)];}
+  else if(groups[0].c===2&&groups[1]&&groups[1].c===2){cat=3;tb=[groups[0].r,groups[1].r,groups[2]?groups[2].r:0];}
+  else if(groups[0].c===2){cat=2;tb=[groups[0].r,...groups.slice(1).map(g=>g.r)];}
+  else{cat=1;tb=ranks;}
+  return{cat,score:[cat,...tb]};
+}
+function combos(arr,k){
+  const res=[];const rec=(start,cur)=>{
+    if(cur.length===k){res.push(cur.slice());return;}
+    for(let i=start;i<arr.length;i++){cur.push(arr[i]);rec(i+1,cur);cur.pop();}
+  };rec(0,[]);return res;
+}
+function bestOf5(cards){
+  let best=null;
+  const subs=cards.length<=5?[cards]:combos(cards,5);
+  for(const s of subs){
+    const sc=score5(s);
+    if(!best||cmp(sc.score,best.score)>0)best=sc;
+  }
+  return best;
+}
+function cmp(a,b){
+  const n=Math.max(a.length,b.length);
+  for(let i=0;i<n;i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x-y;}
+  return 0;
+}
+function evalWithWilds(eff){
+  const wilds=eff.filter(e=>e.wild),base=eff.filter(e=>!e.wild);
+  if(!wilds.length)return bestOf5(base);
+  let best=null;
+  const opts=[];for(const s of SUITS)for(let r=2;r<=14;r++)opts.push({rank:r,suit:s});
+  const rec=(i,arr)=>{
+    if(i===wilds.length){const sc=bestOf5(arr);if(!best||cmp(sc.score,best.score)>0)best=sc;return;}
+    for(const o of opts)rec(i+1,arr.concat(o));
+  };
+  rec(0,base);
+  return best;
+}
+function evalPlayer(p,ctx){
+  const cards=p.hand.filter(c=>!c.gone&&!ctx.exclude.has(c.id)&&(!c.special||c.special==='joker'));
+  if(!cards.length)return{score:[0],cat:0,name:CAT_NAMES[0],hasPair:false};
+  const eff=cards.map(c=>effCard(c,ctx));
+  if(ctx.crown.has(p.id))eff.forEach(e=>{if(!e.wild)e.rank=Math.min(15,e.rank+1);});
+  const res=evalWithWilds(eff);
+  let cat=res.cat;
+  if(ctx.noPairs){
+    if(cat===2||cat===3)res.score=[1,...res.score.slice(2)],cat=1;
+    if(cat===7||cat===8)cat=4,res.score[0]=4;
+  }
+  const cnt={};eff.forEach(e=>{if(!e.wild)cnt[e.rank]=(cnt[e.rank]||0)+1;});
+  const hasPair=Object.values(cnt).some(v=>v>=2);
+  return{score:res.score,cat,name:CAT_NAMES[cat],hasPair};
+}
+function normStrength(ev){
+  const base={0:.02,1:.14,2:.32,3:.45,4:.58,5:.7,6:.78,7:.86,8:.94,9:1}[ev.cat]||.1;
+  return clamp(base+(ev.score[1]||0)/200,0,1);
+}
+
+/* ============================================================
+   9. РУЛЕТКА ПРАВИЛ
+============================================================ */
+async function spinRule(){
+  const ep=G.epoch;
+  dealerSay('Дилер запускает руку в шляпу… Оттуда доносится кудахтанье.');
+  $('#hatBox').classList.add('rattle');
+  for(let i=0;i<12;i++){SND.tick();await sleep(110);if(ep!==G.epoch)return;}
+  $('#hatBox').classList.remove('rattle');
+  let rule=pick(RULES);
+  if(rule.id==='secret')rule.secret=pick(SECRETS);
+  // дилер может ошибиться — это часть шоу
+  if(Math.random()<.16&&rule.id!=='secret'){
+    $('#ruleName').textContent=`${rule.e} ${rule.n}`;$('#ruleDesc').textContent=rule.d;
+    stampShow(rule.e+' '+rule.n);SND.jingle();
+    await sleep(1100);if(ep!==G.epoch)return;
+    dealerSay('ТАК… СЕКУНДУ. ЭТО НЕ ТО ПРАВИЛО. У МЕНЯ ТАКОЕ БЫЛО В 1987-М.');
+    SND.whoosh();await sleep(900);if(ep!==G.epoch)return;
+    let r2=pick(RULES.filter(r=>r.id!==rule.id));
+    if(r2.id==='secret')r2.secret=pick(SECRETS);
+    rule=r2;
+    toast('🎩 Дилер перепутал бумажки!');
+  }
+  G.rule=rule;
+  if(rule.id==='secret'){
+    $('#ruleName').textContent='🤫 СЕКРЕТНОЕ ПРАВИЛО';
+    $('#ruleDesc').textContent='Узнаете на вскрытии. Дилер хитро щурится.';
+    stampShow('🤫 СЕКРЕТ…');
+  }else{
+    $('#ruleName').textContent=`${rule.e} ${rule.n}`;
+    $('#ruleDesc').textContent=rule.d;
+    stampShow(rule.e+' '+rule.n);
+  }
+  SND.jingle();flash();
+  await sleep(1400);
+}
+
+/* ============================================================
+   10. СПЕЦЭФФЕКТЫ КАРТ
+============================================================ */
+function visibleSpecials(exceptId){
+  const list=[];
+  for(const p of G.players)for(const c of p.hand)if(c.special&&c.id!==exceptId&&!c.gone)list.push(c);
+  for(const c of G.tableCards)if(c.special&&c.id!==exceptId)list.push(c);
+  return list;
+}
+async function fireSpecial(card,owner,source){
+  const ep=G.epoch;
+  let times=1;
+  if(G.mods.doubleNext&&card.special!=='clover'){times=2;G.mods.doubleNext=false;toast('🍀 ЭФФЕКТ ×2!!');}
+  for(let t=0;t<times;t++){
+    if(ep!==G.epoch)return;
+    await fireOnce(card,owner,source);
+    await sleep(350);
+  }
+}
+async function fireOnce(card,owner,source){
+  const spec=SPECIALS[card.special];
+  const others=G.players.filter(p=>!p.absent&&p!==owner&&p.hand.some(c=>!c.gone));
+  const alive=G.players.filter(p=>!p.absent&&p.hand.some(c=>!c.gone));
+  const O=owner||pick(alive);
+  const say=()=>{if(!O.human&&Math.random()<.8)bubble(O,pick(LINES[O.id].effect));};
+  toast(`${spec.e} ${spec.n.toUpperCase()}! ${spec.d}`);
+  switch(card.special){
+    case 'joker':
+      dealerSay('🃏 Джокер подмигивает и становится тем, кем выгодно.');
+      break;
+    case 'rooster':{
+      runRooster();SND.cluck();await sleep(650);
+      const hand=O.hand.filter(c=>!c.gone&&!c.special);
+      if(hand.length){const v=pick(hand);v.gone=true;renderHand(O);dealerSay(`🐔 Петух съел ${rName(v.rank)}${v.suit} у игрока ${O.name}!`);G.highlights.push('🐔 Петух сожрал карту у '+O.name);}
+      say();break;}
+    case 'bomb':{
+      const suit=pick(SUITS);SND.boom();shake();flash();
+      for(const p of G.players)for(const c of p.hand)if(c.suit===suit&&!c.special)c.gone=true;
+      renderAll();
+      dealerSay(`💣 БАБАХ! Все масти ${suit} уничтожены. Эвакуация не предусмотрена.`);
+      G.highlights.push(`💣 Бомба стёрла масть ${suit}`);
+      for(const p of G.players)if(!p.human&&Math.random()<.6)bubble(p,pick(LINES[p.id].effect));
+      break;}
+    case 'portal':{
+      const hand=O.hand.filter(c=>!c.gone&&!c.special);
+      if(hand.length){const m={'♠':'♥','♥':'♠','♦':'♣','♣':'♦'};const v=pick(hand);v.suit=m[v.suit];renderHand(O);
+        dealerSay(`🌀 Портал вывернул ${rName(v.rank)} наизнанку. Теперь это ${v.suit}.`);}
+      break;}
+    case 'banana':{
+      const hand=O.hand.filter(c=>!c.gone&&!c.special);
+      if(hand.length){hand.sort((a,b)=>a.rank-b.rank);hand[0].gone=true;renderHand(O);SND.whoosh();
+        dealerSay(`🍌 ${O.name} поскользнулся и выронил ${rName(hand[0].rank)}${hand[0].suit}.`);}
+      break;}
+    case 'reverse':
+      G.mods.forceReversed=true;SND.jingle();
+      dealerSay('🔄 РЕВЕРС! Теперь побеждает ХУДШАЯ рука. Мир перевернулся.');
+      stampShow('🔄 НАОБОРОТ!');break;
+    case 'hat':{
+      const hand=O.hand.filter(c=>!c.gone&&!c.special);
+      if(hand.length){hand.sort((a,b)=>b.rank-a.rank);G.mods.exclude.add(hand[0].id);
+        dealerSay(`🎩 Шляпа накрыла ${rName(hand[0].rank)} игрока ${O.name}. Карты как бы нет.`);}
+      break;}
+    case 'clover':
+      G.mods.doubleNext=true;flash();
+      dealerSay('🍀 Клевер шепчет: следующий эффект будет ДВОЙНЫМ.');break;
+    case 'eye':{
+      O.absurd+=1;
+      for(const p of G.players)if(!p.human&&!p.absent){
+        const ev=evalPlayer(p,buildCtx());
+        bubble(p,`Моя рука на ${Math.round(normStrength(ev)*10)} из 10 🤫`,3000);
+        await sleep(700);
+      }
+      dealerSay('👁️ Глаз увидел всё. И всем стало неловко.');break;}
+    case 'hole':
+      O.chips+=25;SND.ding();floatText(O,'+25 💰');
+      dealerSay(`🕳️ В дыре нашлось 25 фишек. ${O.name} забирает. Не спрашивайте, чьи они были.`);break;
+    case 'octopus':{
+      const other=visibleSpecials(card.id).filter(c=>c.special!=='octopus');
+      if(other.length){const oc=pick(other);dealerSay(`🐙 Осьминог копирует «${SPECIALS[oc.special].n}»! Зачем? Не ясно.`);
+        await fireOnce(oc,O,source);}
+      else{dealerSay('🐙 Осьминог огляделся. Копировать нечего. Ему очень стыдно.');O.absurd+=1;}
+      break;}
+    case 'magnet':{
+      const foe=others.sort((a,b)=>b.chips-a.chips)[0];
+      if(foe){const fh=foe.hand.filter(c=>!c.gone);const mine=O.hand.filter(c=>!c.gone&&!c.special);
+        if(fh.length){const stolen=pick(fh);foe.hand=foe.hand.filter(c=>c!==stolen);O.hand.push(stolen);
+          if(mine.length){const give=mine.sort((a,b)=>a.rank-b.rank)[0];O.hand=O.hand.filter(c=>c!==give);foe.hand.push(give);}
+          renderAll();SND.whoosh();
+          dealerSay(`🧲 Магнит вырвал карту из рук ${foe.name} и отдал ${O.name}. Обмен неравноценный, зато весёлый.`);
+          if(!foe.human)bubble(foe,'Эй! Верни!!');}}
+      break;}
+    case 'bone':{
+      const hand=O.hand.filter(c=>!c.gone&&!c.special);
+      if(hand.length){hand.sort((a,b)=>a.rank-b.rank);const idx=O.hand.indexOf(hand[0]);
+        O.hand[idx]=drawCard();renderHand(O);SND.flip();
+        dealerSay(`🦴 ${O.name} перебрасывает карту. Кость не врёт. Обычно.`);}
+      break;}
+    case 'rain':{
+      const s=pick(SUITS);G.mods.rainSuit=s;flash();
+      dealerSay(`🌧️ ЛИВЕНЬ! Все карты промокли и стали одной мастью: ${s}. Флеши — всем!`);break;}
+    case 'snail':{
+      const v=pick(G.players.filter(p=>!p.absent));v.snailBit=true;
+      dealerSay(`🐌 Улитка доползла до игрока ${v.name}. Следующий рейз будет… медленным.`);break;}
+    case 'clown':{
+      const a=pick(alive),b=pick(alive.filter(p=>p!==a))||a;
+      const ah=a.hand.filter(c=>!c.gone),bh=b.hand.filter(c=>!c.gone);
+      if(ah.length&&bh.length&&a!==b){
+        const ca=pick(ah),cb=pick(bh);
+        a.hand[a.hand.indexOf(ca)]=cb;b.hand[b.hand.indexOf(cb)]=ca;
+        renderAll();SND.jingle();flash();
+        dealerSay(`🤡 Клоун поменял карты ${a.name} и ${b.name}. Просто потому что может.`);
+        G.highlights.push(`🤡 Клоун перемешал руки ${a.name} и ${b.name}`);
+      }else dealerSay('🤡 Клоун хотел поменять карты, но передумал. Случается.');
+      break;}
+    case 'duck':{
+      const v=pick(G.players.filter(p=>!p.absent));v.forcedRaise=true;SND.cluck();
+      dealerSay(`🦆 Утёнок посмотрел на игрока ${v.name}. Теперь тот ОБЯЗАН рейзить. Кря.`);break;}
+    case 'ice':{
+      const foe=pick(others);
+      if(foe){const fh=foe.hand.filter(c=>!c.gone);if(fh.length){const v=pick(fh);v.frozen=true;G.mods.exclude.add(v.id);
+        renderAll();dealerSay(`🧊 Лёд заморозил карту игрока ${foe.name}. Она больше не считается. Ей холодно.`);
+        if(!foe.human)bubble(foe,'Бррр…');}}
+      break;}
+    case 'fire':{
+      shake();SND.boom();
+      for(const p of G.players){const h=p.hand.filter(c=>!c.gone&&!c.special);
+        if(h.length){h.sort((a,b)=>a.rank-b.rank);h[0].gone=true;}}
+      renderAll();
+      dealerSay('🔥 Пожар! Самые слабые карты сгорели у всех. Техника безопасности? Не слышали.');
+      G.highlights.push('🔥 Огонь сжёг слабые карты у всех');break;}
+    case 'crown':
+      G.mods.crown.add(O.id);SND.jingle();floatText(O,'👑 +1');
+      dealerSay(`👑 ${O.name} коронован! Все карты стали на ранг выше. Да здравствует кто попало.`);break;
+  }
+  if(source==='hand'&&card.special!=='joker'){card.gone=true;renderHand(O);}
+  updatePlates();
+}
+
+/* ============================================================
+   11. ХАОС-СОБЫТИЯ
+============================================================ */
+async function chaosFlip(count,label){
+  const ep=G.epoch;
+  SND.drum();
+  for(let i=0;i<count;i++){
+    if(ep!==G.epoch)return;
+    const c=drawCard();G.tableCards.push(c);
+    $('#chaosRow').insertAdjacentHTML('beforeend',cardHTML(c,true,false));
+    const el=$('#chaosRow').lastElementChild;el.classList.add('dealt');
+    SND.flip();await sleep(500);
+    if(c.special)await fireSpecial(c,null,'table');
+    else if(Math.random()<.3)dealerSay(pick(DEALER_SAYS));
+    await sleep(250);
+  }
+}
+async function midBetEvents(){
+  const ep=G.epoch;
+  if(G.rule&&G.rule.id==='emoji'||Math.random()<.13){
+    toast('😵 ЭМОДЗИ-УЖАС! Карты забыли, кто они!');SND.whoosh();
+    document.querySelectorAll('.card .face').forEach(f=>{f.dataset.orig=f.innerHTML;f.innerHTML=`<div class="mid">${pick(Object.values(EMOJI_RANK))}</div>`;});
+    await sleep(2200);if(ep!==G.epoch)return;
+    document.querySelectorAll('.card .face').forEach(f=>{if(f.dataset.orig){f.innerHTML=f.dataset.orig;delete f.dataset.orig;}});
+  }
+  if(Math.random()<.14){
+    const bots=G.players.filter(p=>!p.human&&!p.absent&&!p.folded&&p.hand.some(c=>!c.gone));
+    if(bots.length){
+      const b=pick(bots);SND.shout('ЧИТЕР!');stampShow('🚨 ЧИТЕР!');shake();
+      b.chips=Math.max(0,b.chips-15);G.pot+=15;setEmo(b,'sad');
+      bubble(b,'Это была стратегия!!');
+      dealerSay(`Дилер заметил, как ${b.name} прячет карту в ${b.id===4?'авоську':'карман'}. Штраф 15 фишек!`);
+      updatePlates();await sleep(1200);
+    }
+  }
+  if(Math.random()<.12){
+    const cand=G.players.filter(p=>!p.absent&&!p.folded&&p.hand.some(c=>!c.gone&&!c.special));
+    if(cand.length){
+      const p=pick(cand);const c=pick(p.hand.filter(x=>!x.gone&&!x.special));
+      const el=document.querySelector(`#fan${p.id} .card[data-id="${c.id}"]`);
+      if(el){el.classList.add('escaping');SND.whoosh();
+        toast(`Карта ${rName(c.rank)}${c.suit} заскучала и УБЕЖАЛА. Дилер выдал замену.`);
+        await sleep(900);if(ep!==G.epoch)return;
+        c.gone=true;p.hand.push(drawCard());renderHand(p,true);}
+    }
+  }
+}
+
+/* ============================================================
+   12. СТАВКИ: БОТЫ И ИГРОК
+============================================================ */
+const activePlayers=()=>G.players.filter(p=>!p.folded&&!p.allin&&!p.absent);
+function botDecide(p,need){
+  const ctx=buildCtx();
+  const ev=evalPlayer(p,ctx);
+  let s=normStrength(ev);
+  if(ctx.reversed&&p.id!==1)s=1-s; // Боря никогда не понимает НАОБОРОТ
+  s+=p.mood*.04+rnd(-.06,.06);
+  let act;
+  switch(p.id){
+    case 1: // Боря: самоуверенный до предела
+      if(ev.hasPair&&Math.random()<.55){act='allin';break;}
+      if(need===0)act=Math.random()<.55?'raise':'call';
+      else act=Math.random()<.82?(need>=p.chips?'allin':'call'):'fold';
+      break;
+    case 2: // Люся: фолдит всё, кроме флешей
+      if(ev.cat>=6||s>.78)act=need===0&&Math.random()<.4?'raise':'call';
+      else if(need===0)act='call';
+      else act=Math.random()<.85?'fold':'call';
+      break;
+    case 3: // Гоша: редко, но метко
+      if(s<.42)act=need>0?'fold':'call';
+      else if(s>.8)act=Math.random()<.1?'allin':'raise';
+      else act='call';
+      break;
+    case 4: // Тётя Зина: чистый хаос
+      {const r=Math.random();act=r<.2?'allin':r<.5?'raise':r<.82?'call':'fold';}
+      break;
+  }
+  if(p.forcedRaise&&act==='fold')act='raise';
+  if(p.forcedRaise&&(act==='call'))act='raise';
+  if(need>=p.chips&&act==='call')act=Math.random()<.6?'allin':'fold';
+  if(act==='raise'&&G.raises>=MAX_RAISES)act=need>0?'call':'call';
+  if(act==='raise'&&p.chips<=need+RAISE)act='allin';
+  if(p.snailBit&&act==='raise'){p.snailBit=false;toast(`🐌 Улитка замедлила рейз игрока ${p.name}`);act='call';}
+  return act;
+}
+async function applyAction(p,act,need){
+  const payAmt=a=>{a=Math.min(a,p.chips);p.chips-=a;p.contrib+=a;G.pot+=a;if(p.chips===0)p.allin=true;SND.ding();floatText(p,'-'+a+' 💰');};
+  if(act==='fold'){
+    p.folded=true;p.stats.folds++;setEmo(p,'sad');
+    if(!p.human)bubble(p,pick(LINES[p.id].fold));
+    renderHand(p);
+  }else if(act==='call'){
+    if(need>0){payAmt(need);if(!p.human&&Math.random()<.5)bubble(p,pick(LINES[p.id].bet));}
+    else if(!p.human&&Math.random()<.35)bubble(p,pick(LINES[p.id].bet));
+  }else if(act==='raise'){
+    p.forcedRaise=false;
+    payAmt(need+RAISE);G.currentBet+=RAISE;G.raises++;
+    for(const q of G.players)if(q!==p&&!q.folded&&!q.allin)q.acted=false;
+    if(!p.human)bubble(p,pick(LINES[p.id].bet));
+    toast(`🔥 ${p.name} поднимает до ${G.currentBet}!`);
+  }else if(act==='allin'){
+    const was=p.chips;p.forcedRaise=false;payAmt(Math.max(need,p.chips));
+    p.allin=true;p.stats.allins++;
+    if(p.contrib>G.currentBet){G.currentBet=p.contrib;for(const q of G.players)if(q!==p&&!q.folded)q.acted=false;}
+    SND.whoosh();stampShow('🚀 ALL-IN: '+p.name.toUpperCase());
+    if(!p.human)bubble(p,pick(LINES[p.id].allin));
+    setEmo(p,'angry');
+    if(p.human)G.highlights.push('🚀 Вы пошли ва-банк. Зачем? Не ясно.');
+  }
+  p.acted=true;updatePlates();
+}
+function cluckGate(){
+  return new Promise(res=>{
+    const b=$('#bCluck');b.style.display='inline-block';b.classList.add('big');
+    let done=false;
+    const fin=auto=>{if(done)return;done=true;b.style.display='none';b.classList.remove('big');
+      SND.cluck();const me=pl(0);bubble(me,me.curses.includes('mute')?'🐔🐔🐔':'КУДАХ-КУДАХ! 🐔');
+      if(auto)toast('🐔 Курица кудахнула за вас. Считаем за ставку.');
+      res();};
+    b.onclick=()=>fin(false);
+    setTimeout(()=>fin(true),6000);
+  });
+}
+async function snailDelay(){
+  for(let i=5;i>0;i--){$('#turnInfo').textContent=`🐌 Кнопки прогреваются… ${i}`;await sleep(1000);}
+}
+function playerActionUI(need){
+  return new Promise(res=>{
+    const me=pl(0);
+    if(me.curses.includes('duck'))$('#bFold').disabled=true;else $('#bFold').disabled=false;
+    const call=$('#bCall');
+    if(need<=0)call.innerHTML='ЧЕК <small>✋ бесплатно</small>';
+    else call.innerHTML=`КОЛЛ ${Math.min(need,me.chips)} <small>💰 уравнять</small>`;
+    const canRaise=G.raises<MAX_RAISES&&me.chips>need+RAISE;
+    $('#bRaise').disabled=!canRaise;
+    $('#bAllin').innerHTML=`ALL-IN ${me.chips} <small>🚀 всё!</small>`;
+    $('#bAllin').disabled=me.chips<=0;
+    G.playerResolve=res;
+    // таймер
+    const tb=$('#timerBar');tb.classList.add('on');
+    let t=25;const bar=tb.firstElementChild;bar.style.width='100%';
+    clearInterval(G._timer);
+    G._timer=setInterval(()=>{
+      t--;bar.style.width=(t/25*100)+'%';
+      if(t<=0){clearInterval(G._timer);tb.classList.remove('on');
+        toast('⏰ Вы думали слишком долго. Рука решила сама.');
+        doResolve(need>0&&need<=me.chips?'call':'fold');}
+    },1000);
+    function doResolve(a){
+      if(!G.playerResolve)return;const r=G.playerResolve;G.playerResolve=null;
+      clearInterval(G._timer);tb.classList.remove('on');
+      if(a==='fold'&&me.curses.includes('duck')){toast('🦆 Утёнок решил за вас: ВА-БАНК!');a='allin';}
+      if(me.curses.includes('mute'))bubble(me,pick(['🤐','🙊','😶','🫥']));
+      r(a);
+    }
+    $('#bFold').onclick=()=>doResolve('fold');
+    call.onclick=()=>doResolve('call');
+    $('#bRaise').onclick=()=>doResolve('raise');
+    $('#bAllin').onclick=()=>doResolve('allin');
+  });
+}
+async function doTurn(p,need){
+  const ep=G.epoch;
+  setTurn(p,true);
+  $('#turnInfo').textContent=p.human?'ВАШ ХОД! 🫵':`Ходит ${p.name}…`;
+  if(p.human){
+    if(p.curses.includes('chicken'))await cluckGate();
+    if(p.curses.includes('snail'))await snailDelay();
+    if(ep!==G.epoch)return;
+    const act=await playerActionUI(need);
+    if(ep!==G.epoch)return;
+    await applyAction(p,act,need);
+  }else{
+    await sleep(rnd(600,1100));if(ep!==G.epoch)return;
+    const act=botDecide(p,need);
+    await applyAction(p,act,need);
+  }
+  setTurn(p,false);
+  updatePlates();
+}
+async function bettingPhase(){
+  const ep=G.epoch;
+  G.phase='bet';G.currentBet=BLIND;G.raises=0;
+  for(const p of G.players){p.contrib=0;p.acted=false;}
+  const start=ri(5);
+  // подозрение к победителю
+  if(G.playerWinStreak>=2){
+    const b=pick(G.players.filter(x=>!x.human&&!x.absent));
+    if(b){setEmo(b,'suspect');bubble(b,pick(LINES[b.id].suspect),3000);}
+  }
+  dealerSay(`Ставки открыты. Вход ${BLIND} фишек. Совесть не принимается.`);
+  let eventsDone=false;
+  for(let pass=0;pass<8;pass++){
+    let any=false;
+    for(let k=0;k<5;k++){
+      if(ep!==G.epoch)return;
+      const i=(start+k)%5,p=G.players[i];
+      if(p.absent||p.folded||p.allin)continue;
+      const need=G.currentBet-p.contrib;
+      if(need===0&&p.acted)continue;
+      any=true;
+      await doTurn(p,need);
+      if(G.roundEnded)return;
+      if(stayers().length<=1){await muckWin();return;}
+    }
+    if(pass===0&&!eventsDone){eventsDone=true;await midBetEvents();}
+    const done=G.players.every(p=>p.absent||p.folded||p.allin||(p.contrib===G.currentBet&&p.acted));
+    if(done||!any)break;
+  }
+  $('#turnInfo').textContent='';
+  renderAll();
+}
+async function muckWin(){
+  const w=stayers()[0];
+  w.chips+=G.pot;w.stats.wins++;w.mood=clamp(w.mood+1,-2,2);
+  if(w.human){G.playerWinStreak++;confetti();SND.applause();}else G.playerWinStreak=0;
+  stampShow(`🏳️ ВСЕ СДУЛИСЬ! БАНК У ${w.name}`);
+  if(!w.human)bubble(w,pick(LINES[w.id].win),3000);
+  dealerSay(`Все сбросили. ${w.name} забирает ${G.pot} без боя. Трусость победила.`);
+  updatePlates();
+  G.roundEnded=true;
+  await sleep(1600);
+}
+
+/* ============================================================
+   13. ВСКРЫТИЕ И НАГРАЖДЕНИЕ
+============================================================ */
+async function revealAll(){
+  G.phase='showdown';renderAll();
+  SND.drum();
+  for(const p of stayers()){setEmo(p,'neutral');await sleep(120);}
+  await sleep(600);
+}
+async function fireHandSpecials(){
+  for(const p of G.players){
+    if(p.absent||p.folded)continue;
+    const specs=p.hand.filter(c=>c.special&&!c.gone);
+    for(const c of specs){
+      if(p.human||Math.random()<.9)bubble(p,SPECIALS[c.special].e+'!',1200);
+      await fireSpecial(c,p,'hand');
+      await sleep(300);
+    }
+  }
+}
+async function maybeOldDealer(){
+  if(G.rule.id!=='oldDealer'&&G.rule.id!=='secret')return;
+  if(G.rule.id==='oldDealer'&&Math.random()<.65){
+    const r2=pick(RULES.filter(r=>r.id!=='oldDealer'&&r.id!=='secret'));
+    dealerSay('👴 ТАК… КАЖЕТСЯ, Я ПЕРЕПУТАЛ РАУНДЫ. ПРАВИЛО БЫЛО ДРУГОЕ!');
+    G.rule=r2;
+    $('#ruleName').textContent=`${r2.e} ${r2.n}`;$('#ruleDesc').textContent=r2.d;
+    stampShow('👴 ОЙ. '+r2.n);shake();SND.whoosh();
+    await sleep(1400);
+  }
+}
+async function showdown(){
+  const ep=G.epoch;
+  await revealAll();if(ep!==G.epoch)return;
+  await fireHandSpecials();if(ep!==G.epoch)return;
+  await maybeOldDealer();if(ep!==G.epoch)return;
+  const st=stayers();
+  let winner,results;
+  if(G.rule.id==='secret'){
+    const sec=G.rule.secret;
+    stampShow('🤫 СЕКРЕТ ВСКРЫТ!');flash();await sleep(900);
+    toast(sec.say,3500);dealerSay('🤫 Секретное правило: '+sec.say);
+    results=st.map(p=>({p,score:sec.fn(p),name:'Секретная логика 🤫'}));
+    results.sort((a,b)=>cmp(b.score,a.score));
+    winner=results[0].p;
+  }else{
+    const ctx=buildCtx();
+    results=st.map(p=>{const ev=evalPlayer(p,ctx);return{p,score:ev.score,name:ev.name,cat:ev.cat};});
+    results.sort((a,b)=>ctx.reversed?cmp(a.score,b.score):cmp(b.score,a.score));
+    winner=results[0].p;
+  }
+  if(ep!==G.epoch)return;
+  // объявление результатов
+  for(const r of results){
+    bubble(r.p,r.name,2600);await sleep(350);
+    if(r.p.human)setEmo(r.p,'neutral');
+  }
+  await sleep(500);
+  // победа
+  let prize=G.pot;
+  if(G.mods.doublePot){prize*=2;toast('💰 Фишки материализовались из воздуха. Банк ×2!');}
+  if(winner.curses.includes('clown')){
+    const half=Math.floor(prize/2);prize-=half;
+    toast(`🎪 Проклятие клоуна: половина выигрыша (${half}) ушла в фонд цирка.`);
+  }
+  winner.chips+=prize;winner.stats.wins++;winner.mood=clamp(winner.mood+1,-2,2);
+  const hadChaos=G.tableCards.some(c=>c.special)||G.players.some(p=>p.hand.some(c=>c.special));
+  if(winner.human){
+    G.playerWinStreak++;
+    let ab=2;if(winner.stats.allins>0&&winner.allin)ab+=3;
+    if(G.rule.id==='reverse'||G.mods.forceReversed)ab+=3;
+    if(hadChaos)ab+=2;winner.absurd+=ab;
+    winner.curses=[];toast('✨ Проклятия сняты победой!');
+    confetti();SND.applause();flash();
+    stampShow(`🏆 ВЫ ЗАБИРАЕТЕ ${prize}!`);
+    G.highlights.push(`🏆 Вы забрали банк ${prize} (${results[0].name})`);
+    if(Math.random()<.2){winner.absurd+=3;toast('🐔👑 ПОЧЁТНЫЙ ПЕТУХ! +3🤪');G.highlights.push('🐔 Вы получили Почётного Петуха');}
+  }else{
+    G.playerWinStreak=0;winner.absurd+=2;
+    winner.curses=[];
+    setEmo(winner,'happy');bubble(winner,pick(LINES[winner.id].win),3000);
+    stampShow(`🏆 ${winner.name} ЗАБИРАЕТ ${prize}`);
+    SND.jingle();
+    if(hadChaos)winner.stats.chaosWins++;
+  }
+  // жалость дилера
+  if(G.rule.id==='mercy'&&results.length>1){
+    const last=results[results.length-1].p;last.chips+=20;
+    toast(`🥺 Дилеру жалко ${last.name}: +20 из личного кармана.`);
+  }
+  // проклятие проигравшему
+  if(results.length>1){
+    const loser=results[results.length-1].p;
+    if(!loser.human){setEmo(loser,'sad');bubble(loser,pick(LINES[loser.id].lose),3000);loser.mood=clamp(loser.mood-1,-2,2);}
+    const curse=pick(Object.keys(CURSES));
+    loser.curses=[curse];loser.stats.cursesTaken++;
+    const c=CURSES[curse];
+    if(loser.human){
+      flash(true);shake();SND.sad();if(curse==='chicken')SND.cluck();
+      stampShow('ПРОКЛЯТИЕ: '+c.e+' '+c.n.toUpperCase());
+      toast(`💀 ${c.d}`,3200);
+      G.highlights.push(`💀 Вы получили проклятие «${c.n}»`);
+    }else{
+      toast(`${c.e} ${loser.name} получает проклятие «${c.n}»`);
+    }
+  }
+  // дерзость: абсурд за смелость
+  for(const p of G.players)if(p.allin&&!p.human&&Math.random()<.5)bubble(p,'Это была ГЕНИАЛЬНОСТЬ.',2500);
+  updatePlates();
+  G.roundEnded=true;
+  await sleep(1800);
+}
+
+/* ============================================================
+   14. СЦЕНЫ МЕЖДУ РАУНДАМИ
+============================================================ */
+async function interlude(){
+  const ep=G.epoch;
+  // пицца
+  if(Math.random()<.2){
+    const b=pick(G.players.filter(p=>!p.human&&!p.absent));
+    if(b){
+      b.absent=true;b.absurd+=1;
+      bubble(b,'Я за пиццей! 🍕 Без меня НЕ начинайте!',3000);
+      setEmo(b,'eat');SND.crunch();
+      toast(`🍕 ${b.name} ушёл за пиццей и пропустит раунд`);
+      updatePlates();await sleep(1600);if(ep!==G.epoch)return;
+    }
+  }else{
+    const back=G.players.filter(p=>p.absent);
+    for(const b of back){
+      b.absent=false;b.chips+=15;b.absurd+=1;
+      bubble(b,'Я вернулся! Пицца остыла, зато +15 фишек!',3000);
+      setEmo(b,'happy');SND.crunch();
+      G.highlights.push(`🍕 ${b.name} вернулся с пиццей`);
+      updatePlates();await sleep(1200);
+    }
+  }
+  if(Math.random()<.45){
+    const sc=pick(SCENES);
+    $('#sceneTitle').textContent=sc.t;
+    $('#sceneBody').innerHTML='';
+    $('#ovScene').classList.remove('hidden');
+    for(const[id,line]of sc.l){
+      const b=G.players[id];
+      $('#sceneBody').insertAdjacentHTML('beforeend',`<div class="sceneLine"><b>${b.name}:</b> ${line}</div>`);
+      bubble(b,line,2600);SND.flip();
+      await sleep(1500);if(ep!==G.epoch)return;
+    }
+    await sleep(900);
+    $('#ovScene').classList.add('hidden');
+  }
+  // банкротам — кредит
+  for(const p of G.players){
+    if(p.chips<BLIND){
+      p.chips+=30;
+      if(p.human)toast('🏦 Дом дал вам кредит 30 фишек. Процент — ваш стыд.');
+      else toast(`🏦 Тётя Зина одолжила ${p.name} 30 фишек под честное слово.`);
+      updatePlates();
+    }
+  }
+}
+
+/* ============================================================
+   15. РАУНД И ПАРТИЯ
+============================================================ */
+async function startRound(){
+  const ep=G.epoch;
+  G.roundEnded=false;G.tableCards=[];$('#chaosRow').innerHTML='';
+  G.mods={wildSuit:pick(SUITS),rainSuit:null,forceReversed:false,crown:new Set(),exclude:new Set(),doubleNext:false,doublePot:false};
+  G.cheatUsedRound=false;
+  $('#roundTag').textContent=`РАУНД ${G.round}/${ROUNDS}`;
+  for(const p of G.players){p.folded=false;p.allin=false;p.contrib=0;p.acted=false;if(!p.human)setEmo(p,'neutral');}
+  dealerSay(pick(DEALER_SAYS));
+  await dealAll();if(ep!==G.epoch)return;
+  await spinRule();if(ep!==G.epoch)return;
+  // пост-эффекты правила
+  if(G.rule.id==='sixth'){
+    for(const p of G.players)if(!p.absent)p.hand.push(drawCard());
+    renderAll(true);toast('6️⃣ Всем по шестой! Жадность дилера не знает границ.');
+    await sleep(700);
+  }
+  if(G.rule.id==='passHands'){
+    const act = G.players.filter(p=>!p.absent);
+    const hands=act.map(p=>p.hand);
+    act.forEach((p,i)=>{p.hand=hands[(i+hands.length-1)%hands.length];});
+    renderAll(true);SND.whoosh();
+    toast('🔀 Карты переехали к соседям. Никто не доволен.');
+    G.highlights.push('🔀 Все поменялись руками');
+    await sleep(800);
+  }
+  if(G.rule.id==='doublePot'){G.mods.doublePot=true;toast('💰 ДВОЙНОЙ БАНК! Дом платит за банкет.');}
+  if(G.rule.id==='allSee'){
+    renderAll();toast('👀 Все карты раскрыты. Ставьте честно. Ха-ха.');
+    await sleep(800);
+  }
+  if(G.rule.id==='future'){
+    const peek=G.deck[G.deck.length-1];
+    if(peek){const sp=peek.special?SPECIALS[peek.special]:null;
+      toast(`🔮 Вы видите будущее: на стол упадёт ${sp?sp.e+' '+sp.n:rName(peek.rank)+peek.suit}!`,3500);
+      G.players[0].absurd+=1;}
+  }
+  updatePlates();
+  await bettingPhase();if(ep!==G.epoch)return;
+  if(G.roundEnded)return;
+  await chaosFlip(2,'флоп');if(ep!==G.epoch)return;
+  await chaosFlip(1,'тёрн');if(ep!==G.epoch)return;
+  await chaosFlip(1,'ривер');if(ep!==G.epoch)return;
+  if(G.rule.id==='emoji')await midBetEvents();
+  await showdown();if(ep!==G.epoch)return;
+}
+async function matchLoop(){
+  const ep=G.epoch;
+  for(G.round=1;G.round<=ROUNDS;G.round++){
+    if(ep!==G.epoch)return;
+    await startRound();
+    if(ep!==G.epoch)return;
+    if(G.round<ROUNDS)await interlude();
+    if(ep!==G.epoch)return;
+  }
+  await endMatch();
+}
+
+/* ============================================================
+   16. ФИНАЛ, ТИТУЛЫ, ШАРИНГ
+============================================================ */
+function computeTitles(){
+  const ps=[...G.players].sort((a,b)=>b.chips-a.chips);
+  const titles={};
+  const winner=ps[0];
+  titles[winner.id]=['🏆','ЧЕМПИОН БЕЗУМНОГО КАЗИНО'];
+  const most=(f)=>{let best=null;for(const p of G.players){const v=f(p);if(v>0&&(!best||v>f(best)))best=p;}return best;};
+  const al=most(p=>p.stats.allins);if(al&&al.stats.allins>=2)titles[al.id]=titles[al.id]||['🃏','МАНЬЯК ВА-БАНКА'];
+  const cu=most(p=>p.stats.cursesTaken);if(cu&&cu.stats.cursesTaken>=2)titles[cu.id]=titles[cu.id]||['🐔','КУРИНЫЙ КОРОЛЬ'];
+  const ab=most(p=>p.absurd);if(ab)titles[ab.id]=titles[ab.id]||['🌀','ХАОС-АГЕНТ'];
+  const fo=most(p=>p.stats.folds);if(fo&&fo.stats.folds>=3)titles[fo.id]=titles[fo.id]||['🫣','МАСТЕР ОТСТУПЛЕНИЯ'];
+  const ch=most(p=>p.stats.cheats);if(ch&&ch.stats.cheats>=2)titles[ch.id]=titles[ch.id]||['🍕','ПИЦЦЕЕД'];
+  if(winner.stats.cheats===0&&!titles[winner.id][1].includes('МАНЬЯК'))titles[winner.id]=['🎩','ЧЕСТНЫЙ ШЛЯПНИК'];
+  if(winner.stats.losses>=2)titles[winner.id]=['🤡','КЛОУН, КОТОРЫЙ ВЫИГРАЛ'];
+  for(const p of G.players)if(!titles[p.id])titles[p.id]=['🪑','СВИДЕТЕЛЬ ХАОСА'];
+  return{ps,titles};
+}
+async function endMatch(){
+  const ep=G.epoch;
+  const{ps,titles}=computeTitles();
+  const winner=ps[0];
+  $('#endHead').textContent=winner.human?'🎉 ВЫ ПОБЕДИЛИ В ЭТОМ ЦИРКЕ!':`🏆 ПОБЕДИЛ: ${winner.name} ${winner.emoji}`;
+  $('#endRows').innerHTML=ps.map((p,i)=>`
+    <div class="titleRow">
+      <span>${i===0?'👑 ':''}${p.human?'😎':' '} ${p.name}</span>
+      <span>💰 ${p.chips} &nbsp; <span class="tt">${titles[p.id][0]} ${titles[p.id][1]}</span></span>
+    </div>`).join('');
+  $('#endQuote').textContent='«'+pick([
+    'Это был не покер. Это был диагноз.',
+    'Петух снова не уволен.',
+    'Дилер просит никого не рассказывать бухгалтерии.',
+    'Страховка казино сгорела вместе с картами.',
+    'Тётя Зина требует реванш и пирожки.',
+  ])+'»';
+  $('#ovEnd').classList.remove('hidden');
+  if(winner.human){confetti();confetti();SND.applause();}else SND.sad();
+  // рекорды
+  const matches=LS.get('mp_matches',0)+1;LS.set('mp_matches',matches);
+  const best=LS.get('mp_best',0);
+  if(G.players[0].chips>best)LS.set('mp_best',G.players[0].chips);
+  G._titles=titles;
+}
+function shareText(){
+  const{titles}=G._titles?{titles:G._titles}:{titles:{}};
+  const me=G.players[0];
+  const hl=G.highlights.slice(-3).map(h=>'• '+h).join('\n')||'• Ничего не помню. Было страшно.';
+  const t=(titles[0]||['🪑','СВИДЕТЕЛЬ ХАОСА']).join(' ');
+  return `🎰 Я выжил в «БЕЗУМНОМ ПОКЕРЕ»!\n💰 Итог: ${me.chips} фишек, ${me.absurd}🤪 абсурда\n${t}\n\nХроники безумия:\n${hl}\n\nСловами это не описать. Открывай и смотри сам 🐔💣`;
+}
+
+/* ============================================================
+   17. КОНФЕТТИ
+============================================================ */
+const FX=$('#fx'),FCTX=FX.getContext('2d');let PARTS=[];
+function sizeFX(){FX.width=innerWidth;FX.height=innerHeight;}
+addEventListener('resize',sizeFX);sizeFX();
+function confetti(){
+  const cols=['#ffcf3f','#ff2e88','#2ee6d6','#fff6e5','#ff5340','#b46cff'];
+  for(let i=0;i<90;i++)PARTS.push({x:rnd(0,FX.width),y:rnd(-60,-10),vx:rnd(-2,2),vy:rnd(2,6),r:rnd(3,7),c:pick(cols),rot:rnd(0,6),vr:rnd(-.2,.2),life:rnd(80,160)});
+}
+(function fxLoop(){
+  FCTX.clearRect(0,0,FX.width,FX.height);
+  PARTS=PARTS.filter(p=>p.life>0&&p.y<FX.height+20);
+  for(const p of PARTS){
+    p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life--;
+    FCTX.save();FCTX.translate(p.x,p.y);FCTX.rotate(p.rot);
+    FCTX.fillStyle=p.c;FCTX.fillRect(-p.r,-p.r/2,p.r*2,p.r);FCTX.restore();
+  }
+  requestAnimationFrame(fxLoop);
+})();
+
+/* ============================================================
+   18. ЧИТЫ ИГРОКА
+============================================================ */
+function toggleCheatMenu(){
+  const m=$('#cheatMenu');m.classList.toggle('on');
+}
+async function doCheat(kind){
+  const me=pl(0);
+  if(me.pizza<=0){toast('🍕 Пицца кончилась. Читы — только за пиццу.');return;}
+  if(G.cheatUsedRound){toast('Уже читовали в этом раунде. Дилер следит.');return;}
+  if(G.phase!=='bet'||!$('#bCall').offsetParent){}
+  G.cheatUsedRound=true;me.pizza--;me.stats.cheats++;me.absurd+=1;
+  SND.crunch();$('#cheatMenu').classList.remove('on');
+  if(Math.random()<.4){const b=pick(G.players.filter(p=>!p.human&&!p.absent));if(b)bubble(b,'Я ВИДЕЛ!! 👀',2500);}
+  dealerSay('Дилер делает вид, что ничего не заметил. У него план по выручке.');
+  if(kind==='peek'){
+    const bots=G.players.filter(p=>!p.human&&!p.absent&&!p.folded&&p.hand.length);
+    if(!bots.length){toast('Подглядывать не за кем. Неловко.');return;}
+    const b=pick(bots);const c=pick(b.hand);
+    const sp=c.special?SPECIALS[c.special]:null;
+    toast(`👁️ Подсмотрено: у ${b.name} есть ${sp?sp.e+' '+sp.n:rName(c.rank)+c.suit}`,3500);
+  }else{
+    const h=me.hand.filter(c=>!c.gone&&!c.special);
+    if(!h.length){toast('Менять нечего. Даже грустно.');return;}
+    h.sort((a,b)=>a.rank-b.rank);
+    const idx=me.hand.indexOf(h[0]);
+    me.hand[idx]=drawCard();
+    renderHand(me,true);SND.flip();
+    toast('🔄 Подмена удалась. Дилер отвернулся очень вовремя.');
+  }
+  updatePlates();
+}
+
+/* ============================================================
+   19. ЗАПУСК
+============================================================ */
+function startMatch(){
+  newGame();
+  buildScene();
+  updatePlates();renderAll();
+  $('#ovStart').classList.add('hidden');
+  $('#ovEnd').classList.add('hidden');
+  $('#roundTag').textContent=`РАУНД 0/${ROUNDS}`;
+  $('#ruleName').textContent='🎰 ПОЕХАЛИ!';
+  $('#ruleDesc').textContent='шляпа уже тасует правила';
+  SND.jingle();
+  matchLoop();
+}
+$('#btnPlay').onclick=()=>{SND.ac();startMatch();};
+$('#btnAgain').onclick=()=>startMatch();
+$('#btnRestart').onclick=()=>{if(confirm('Сдать всё заново и забыть этот позор?'))startMatch();};
+$('#btnSound').onclick=()=>{SND.on=!SND.on;LS.set('mp_sound',SND.on);$('#btnSound').textContent=SND.on?'🔊':'🔇';if(SND.on)SND.ding();};
+$('#bCheat').onclick=toggleCheatMenu;
+$('#cPeek').onclick=()=>doCheat('peek');
+$('#cSwap').onclick=()=>doCheat('swap');
+$('#btnShare').onclick=async()=>{
+  const t=shareText();
+  try{await navigator.clipboard.writeText(t);toast('📋 Скопировано! Вставляйте в чат и смотрите на реакцию.',3000);}
+  catch(e){
+    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);
+    ta.select();try{document.execCommand('copy');toast('📋 Скопировано!');}catch(x){toast(t,4000);}ta.remove();
+  }
+};
+$('#btnSound').textContent=SND.on?'🔊':'🔇';
+const recM=LS.get('mp_matches',0),recB=LS.get('mp_best',0);
+$('#recordLine').textContent=recM?`Вы уже играли ${recM} раз. Рекорд: ${recB} фишек. Дилер помнит.`:'Вы здесь впервые. Дилер уже потирает руки.';
+
+/* === ФИКС: глобальные кнопки ставок — не зависят от playerActionUI === */
+function submitBetAction(action){
+  if(!G||!G.playerResolve)return; // не наш ход — молча игнорируем
+  const me=G.players[0];
+  if(action==='fold'&&me.curses.includes('duck')){
+    toast('🦆 Утёнок решил за вас: ВА-БАНК!');action='allin';
+  }
+  const r=G.playerResolve;G.playerResolve=null;
+  if(G._timer)clearInterval(G._timer);
+  const tb=$('#timerBar');if(tb)tb.classList.remove('on');
+  if(me.curses.includes('mute'))bubble(me,pick(['🤐','🙊','😶','🫥']));
+  try{r(action);}catch(err){console.error('submitBetAction:',err);}
+}
+(function bindBetButtons(){
+  const map={bFold:'fold',bCall:'call',bRaise:'raise',bAllin:'allin'};
+  Object.keys(map).forEach(id=>{
+    const btn=document.getElementById(id);
+    if(!btn)return;
+    btn.onclick=function(){submitBetAction(map[id]);};
+  });
+})();
+/* Диагностика — если что-то упадёт, увидишь в консоли */
+window.addEventListener('error',function(e){
+  console.error('[БЕЗУМНЫЙ ПОКЕР] Ошибка:',e.message,'в',e.filename,e.lineno);
+});
+
+newGame();buildScene();updatePlates();
+</script>
+</body>
+</html>
