@@ -1,1723 +1,2156 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>БЕЗУМНЫЙ ПОКЕР 🎰</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>ШИЗОПОКЕР «СТОЛ НА КРАЮ ЧЕРЕПА»</title>
 <style>
-/* ============================================================
-   БЕЗУМНЫЙ ПОКЕР — казино, которое сошло с ума
-   ============================================================ */
-:root{
-  --ink:#1c0b2b;
-  --cream:#fff6e5;
-  --gold:#ffcf3f;
-  --pink:#ff2e88;
-  --cyan:#2ee6d6;
-  --felt1:#b81d5b;
-  --felt2:#6d0f36;
-  --room1:#31114a;
-  --room2:#0e0518;
-  --disp:'Rubik Mono One','Arial Black',sans-serif;
-  --body:'Nunito','Segoe UI',system-ui,sans-serif;
-  --cw-bot:clamp(26px,6vmin,46px);
-  --cw-me:clamp(46px,9.5vmin,74px);
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;}
-body{
-  font-family:var(--body);
-  background:
-    radial-gradient(ellipse at 50% -10%, #4a1a6b 0%, transparent 55%),
-    repeating-linear-gradient(45deg, rgba(255,255,255,.022) 0 2px, transparent 2px 26px),
-    radial-gradient(ellipse at 50% 120%, #22083a 0%, var(--room2) 70%);
-  color:var(--cream);
-  user-select:none;
-  touch-action:manipulation;
-}
-#dust{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
-#dust span{position:absolute;bottom:-20px;border-radius:50%;background:rgba(255,207,63,.35);animation:dustUp linear infinite;}
-@keyframes dustUp{to{transform:translateY(-110vh) translateX(30px);opacity:0;}}
-
-/* ---------- КАРКАС ---------- */
-#stage{position:fixed;inset:0;display:flex;flex-direction:column;z-index:2;}
-#stage.shaking{animation:shakeStage .5s;}
-@keyframes shakeStage{
-  0%,100%{transform:translate(0,0) rotate(0);}
-  15%{transform:translate(-10px,6px) rotate(-.7deg);}
-  30%{transform:translate(9px,-7px) rotate(.8deg);}
-  45%{transform:translate(-8px,-5px) rotate(-.5deg);}
-  60%{transform:translate(7px,6px) rotate(.6deg);}
-  80%{transform:translate(-5px,3px) rotate(-.3deg);}
-}
-
-/* ---------- ЛЕНТА ПРАВИЛА ---------- */
-#ribbon{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:6px 10px;background:linear-gradient(180deg,#2a0d3f,#180726);
-  border-bottom:3px dashed rgba(255,207,63,.5);z-index:20;flex-wrap:wrap;
-}
-#roundTag{font-family:var(--disp);font-size:clamp(10px,2.4vmin,15px);color:var(--cyan);white-space:nowrap;}
-#ruleBox{flex:1;text-align:center;min-width:0;}
-#ruleName{font-family:var(--disp);font-size:clamp(12px,3vmin,20px);color:var(--gold);text-shadow:2px 2px 0 #000;letter-spacing:.5px;}
-#ruleDesc{font-size:clamp(9px,2vmin,13px);opacity:.85;font-weight:700;}
-.ribbonBtn{
-  font-family:var(--disp);font-size:clamp(11px,2.6vmin,16px);
-  background:#3c1355;color:var(--cream);border:2px solid var(--gold);
-  border-radius:10px;padding:4px 9px;cursor:pointer;box-shadow:0 3px 0 #000;
-}
-.ribbonBtn:active{transform:translateY(2px);box-shadow:0 1px 0 #000;}
-
-/* ---------- СТОЛ ---------- */
-#tableWrap{flex:1;position:relative;overflow:hidden;min-height:0;}
-#table{
-  position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
-  width:min(92vw,760px);height:min(56vw,430px);max-height:62vh;
-  border-radius:50%;
-  background:
-    radial-gradient(ellipse at 50% 30%, #d8356f 0%, var(--felt1) 35%, var(--felt2) 100%);
-  border:7px solid var(--gold);
-  outline:3px dashed rgba(46,230,214,.55);outline-offset:-16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.65), inset 0 0 90px rgba(0,0,0,.5), inset 0 0 26px rgba(255,46,136,.4);
-}
-#table::before{ /* трещины */
-  content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
-  background:
-    linear-gradient(115deg, transparent 47.7%, rgba(0,0,0,.35) 48%, transparent 48.4%),
-    linear-gradient(23deg, transparent 66.7%, rgba(0,0,0,.28) 67%, transparent 67.3%);
-}
-.sticker{position:absolute;font-size:clamp(14px,3vmin,26px);opacity:.85;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.5));pointer-events:none;}
-.sticker i{display:block;font-style:normal;font-family:var(--disp);font-size:.42em;color:var(--gold);text-shadow:1px 1px 0 #000;transform:rotate(-6deg);}
-.bulb{position:absolute;width:9px;height:9px;border-radius:50%;background:#ffd83f;box-shadow:0 0 8px 2px rgba(255,216,63,.8);animation:bulbBlink 1.1s steps(2) infinite;}
-.bulb.b2{background:var(--cyan);box-shadow:0 0 8px 2px rgba(46,230,214,.8);animation-delay:.55s;}
-@keyframes bulbBlink{50%{opacity:.25;box-shadow:none;}}
-
-/* ---------- ШЛЯПА ДИЛЕРА ---------- */
-#hatBox{position:absolute;left:50%;top:6%;transform:translateX(-50%);width:clamp(56px,11vmin,92px);z-index:5;text-align:center;pointer-events:none;}
-#hatBox svg{width:100%;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5));}
-#hatBox.rattle svg{animation:hatRattle .12s infinite;}
-@keyframes hatRattle{
-  0%,100%{transform:rotate(0) translateY(0);}
-  25%{transform:rotate(-7deg) translateY(-3px);}
-  75%{transform:rotate(7deg) translateY(-2px);}
-}
-#hatLabel{font-size:clamp(8px,1.7vmin,11px);font-weight:900;opacity:.8;text-shadow:1px 1px 0 #000;}
-
-/* ---------- ЦЕНТР СТОЛА ---------- */
-#center{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);text-align:center;z-index:4;width:80%;}
-#potBox{
-  display:inline-block;font-family:var(--disp);font-size:clamp(12px,2.8vmin,19px);
-  background:var(--ink);color:var(--gold);border:3px solid var(--gold);border-radius:14px;
-  padding:3px 14px;box-shadow:0 4px 0 #000;margin-bottom:6px;
-}
-#chaosRow{display:flex;gap:6px;justify-content:center;min-height:calc(var(--cw-bot)*1.5);}
-#chaosLabel{font-size:clamp(8px,1.7vmin,11px);font-weight:900;opacity:.75;letter-spacing:2px;text-shadow:1px 1px 0 #000;margin-top:2px;}
-
-/* ---------- МЕСТА ---------- */
-.seat{position:absolute;width:clamp(86px,19vmin,150px);display:flex;flex-direction:column;align-items:center;z-index:6;}
-.seat .avatar{width:clamp(52px,11vmin,88px);height:clamp(52px,11vmin,88px);filter:drop-shadow(0 5px 4px rgba(0,0,0,.5));transition:transform .3s;}
-.seat.turn .avatar{transform:scale(1.1);filter:drop-shadow(0 0 12px var(--gold)) drop-shadow(0 5px 4px rgba(0,0,0,.5));}
-.seat.absent .avatar{filter:grayscale(1) brightness(.6);}
-.seat.absent::after{content:"🍕 УШЁЛ ЗА ПИЦЦЕЙ";position:absolute;top:42%;font-family:var(--disp);font-size:clamp(7px,1.5vmin,10px);color:var(--gold);text-shadow:1px 1px 0 #000;transform:rotate(-12deg);}
-.plate{
-  margin-top:-4px;background:var(--ink);border:2px solid rgba(255,207,63,.6);border-radius:10px;
-  padding:2px 7px;text-align:center;font-size:clamp(8px,1.9vmin,12px);font-weight:800;line-height:1.25;
-  box-shadow:0 3px 0 rgba(0,0,0,.6);max-width:100%;
-}
-.plate .nm{color:var(--gold);font-family:var(--disp);font-size:.95em;white-space:nowrap;}
-.plate .chips{color:var(--cream);}
-.plate .badges{font-size:1.05em;letter-spacing:1px;}
-.fan{display:flex;justify-content:center;margin-top:3px;min-height:calc(var(--cw-bot)*1.42);}
-.fan .card{margin:0 calc(var(--cw-bot)*-.16);}
-.bubble{
-  position:absolute;bottom:102%;left:50%;transform:translateX(-50%) scale(0);
-  background:#fff;color:var(--ink);border:2.5px solid var(--ink);border-radius:14px;
-  padding:4px 9px;font-size:clamp(9px,2vmin,13px);font-weight:800;white-space:normal;
-  width:max-content;max-width:clamp(110px,24vmin,190px);text-align:center;z-index:30;
-  box-shadow:3px 3px 0 rgba(0,0,0,.4);transition:transform .18s cubic-bezier(.34,1.56,.64,1);
-}
-.bubble.show{transform:translateX(-50%) scale(1);}
-.bubble::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--ink);}
-
-#seat0{left:50%;bottom:-1.5%;transform:translateX(-50%);}
-#seat1{left:0.5%;top:26%;}
-#seat2{left:15%;top:-3%;}
-#seat3{right:15%;top:-3%;}
-#seat4{right:0.5%;top:26%;}
-
-/* ---------- КАРТЫ ---------- */
-.card{width:var(--cw-bot);aspect-ratio:5/7;position:relative;perspective:500px;flex-shrink:0;}
-.card.me{width:var(--cw-me);}
-.card .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .45s;}
-.card.down .in{transform:rotateY(180deg);}
-.card .face,.card .back{
-  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
-  border-radius:12%;border:2px solid var(--ink);box-shadow:0 3px 5px rgba(0,0,0,.4);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;
-}
-.card .face{background:linear-gradient(160deg,#fffdf5,#f3e9cf);}
-.card .back{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,#5b1e86 0 8px,#43126b 8px 16px);}
-.card .back::after{content:"🎪";font-size:calc(var(--cw-bot)*.5);filter:saturate(.6);}
-.card.me .back::after{font-size:calc(var(--cw-me)*.5);}
-.card .cr{position:absolute;top:4%;left:8%;font-weight:900;font-size:calc(var(--cw-bot)*.34);line-height:1;}
-.card .cb{position:absolute;bottom:4%;right:8%;font-weight:900;font-size:calc(var(--cw-bot)*.34);transform:rotate(180deg);line-height:1;}
-.card .mid{font-size:calc(var(--cw-bot)*.62);line-height:1;}
-.card.me .cr,.card.me .cb{font-size:calc(var(--cw-me)*.32);}
-.card.me .mid{font-size:calc(var(--cw-me)*.58);}
-.card.red .cr,.card.red .cb,.card.red .mid{color:#d81f45;}
-.card.blk .cr,.card.blk .cb,.card.blk .mid{color:#232034;}
-.card .sname{font-size:calc(var(--cw-bot)*.19);font-weight:900;color:var(--ink);margin-top:2px;}
-.card.dealt{animation:dealIn .4s cubic-bezier(.2,.9,.3,1.2) backwards;}
-@keyframes dealIn{from{transform:translateY(-70px) scale(.2) rotate(-160deg);opacity:0;}}
-.card.gone .in{opacity:0;transform:scale(.2) rotate(120deg);transition:all .5s;}
-.card.frozen .face{background:linear-gradient(160deg,#c9f2ff,#8fd8f7);}
-.card.frozen::after{content:"🧊";position:absolute;right:-6px;top:-8px;font-size:calc(var(--cw-bot)*.4);z-index:3;}
-.card.exposed .face{box-shadow:0 0 0 3px var(--gold),0 0 14px var(--gold);}
-.card.escaping{transition:transform 1s ease-in,opacity 1s;transform:translate(55vw,-60vh) rotate(600deg)!important;opacity:0;}
-.card.spentcard .face{filter:grayscale(1);opacity:.5;}
-
-/* ---------- ИГРОК ---------- */
-#myFan{display:flex;justify-content:center;margin-top:2px;}
-#myFan .card{margin:0 calc(var(--cw-me)*-.1);}
-#myNote{font-size:clamp(9px,2vmin,12px);font-weight:900;color:var(--cyan);text-shadow:1px 1px 0 #000;min-height:1.3em;text-align:center;}
-
-/* ---------- КОНТРОЛЫ ---------- */
-#controls{
-  background:linear-gradient(0deg,#180726,#2a0d3f);border-top:3px dashed rgba(255,207,63,.5);
-  padding:6px 8px calc(8px + env(safe-area-inset-bottom));z-index:25;
-}
-#timerBar{height:5px;background:#0006;border-radius:4px;margin:0 auto 5px;width:min(420px,90%);overflow:hidden;opacity:0;transition:opacity .2s;}
-#timerBar.on{opacity:1;}
-#timerBar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink));width:100%;}
-#btnRow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;max-width:640px;margin:0 auto;}
-.btn{
-  font-family:var(--disp);font-size:clamp(11px,2.6vmin,16px);color:var(--ink);
-  background:var(--gold);border:3px solid var(--ink);border-radius:12px;
-  padding:9px 12px;cursor:pointer;box-shadow:0 4px 0 var(--ink);min-width:72px;
-  transition:transform .05s;
-}
-.btn small{display:block;font-family:var(--body);font-weight:800;font-size:.62em;}
-.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);}
-.btn:disabled{filter:grayscale(.9);opacity:.55;}
-.btn.pink{background:var(--pink);color:#fff;}
-.btn.cyan{background:var(--cyan);}
-.btn.red{background:#ff5340;color:#fff;}
-.btn.big{animation:btnPulse 1s infinite;}
-@keyframes btnPulse{50%{transform:scale(1.06);}}
-#turnInfo{text-align:center;font-size:clamp(10px,2.2vmin,14px);font-weight:900;margin-top:5px;min-height:1.2em;color:var(--gold);text-shadow:1px 1px 0 #000;}
-
-/* ---------- ЛОГ ДИЛЕРА ---------- */
-#dealerLog{
-  background:#0d0416;border-top:2px solid rgba(46,230,214,.4);
-  padding:4px 10px calc(4px + env(safe-area-inset-bottom));text-align:center;
-  font-size:clamp(10px,2.2vmin,13px);font-weight:700;color:var(--cyan);z-index:25;min-height:1.9em;
-}
-#dealerLog b{color:var(--gold);}
-
-/* ---------- ШТАМПЫ / ВСПЫШКИ / ТОСТЫ ---------- */
-#stamp{
-  position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:80;pointer-events:none;
-  font-family:var(--disp);font-size:clamp(26px,8vmin,64px);color:var(--gold);
-  text-shadow:3px 3px 0 var(--ink),-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),0 0 26px rgba(255,207,63,.6);
-  opacity:0;white-space:nowrap;max-width:96vw;text-align:center;
-}
-#stamp.show{animation:stampIn 1.5s ease forwards;}
-@keyframes stampIn{
-  0%{opacity:0;transform:translate(-50%,-50%) scale(3) rotate(-14deg);}
-  18%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-5deg);}
-  28%{transform:translate(-50%,-50%) scale(1.07) rotate(-5deg);}
-  36%{transform:translate(-50%,-50%) scale(1) rotate(-5deg);}
-  80%{opacity:1;}
-  100%{opacity:0;transform:translate(-50%,-56%) scale(1) rotate(-5deg);}
-}
-#flash{position:fixed;inset:0;z-index:75;pointer-events:none;opacity:0;background:#fff;}
-#flash.go{animation:flashGo .45s;}
-#flash.dark{background:#2a0440;}
-@keyframes flashGo{0%{opacity:.9;}100%{opacity:0;}}
-#toasts{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:85;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:max-content;max-width:92vw;}
-.toast{
-  background:var(--ink);color:var(--cream);border:2px solid var(--gold);border-radius:12px;
-  padding:6px 14px;font-weight:800;font-size:clamp(11px,2.6vmin,15px);box-shadow:0 4px 0 #000;
-  animation:toastIn .25s cubic-bezier(.34,1.56,.64,1);text-align:center;
-}
-@keyframes toastIn{from{transform:translateY(-18px) scale(.6);opacity:0;}}
-.floater{
-  position:absolute;z-index:70;font-family:var(--disp);font-size:clamp(13px,3vmin,20px);
-  color:var(--gold);text-shadow:2px 2px 0 var(--ink);pointer-events:none;
-  animation:floatUp 1.3s ease-out forwards;white-space:nowrap;
-}
-@keyframes floatUp{to{transform:translateY(-70px);opacity:0;}}
-#runner{position:absolute;z-index:60;font-size:clamp(28px,7vmin,52px);pointer-events:none;display:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.5));}
-#runner.go{display:block;animation:runAcross 1.3s linear forwards;}
-@keyframes runAcross{
-  0%{left:-8%;top:58%;transform:scaleX(1);}
-  49%{transform:scaleX(1);}
-  50%{left:102%;top:44%;transform:scaleX(-1);}
-  100%{left:-8%;top:50%;transform:scaleX(-1);}
-}
-#fx{position:fixed;inset:0;z-index:90;pointer-events:none;}
-
-/* ---------- ОВЕРЛЕИ ---------- */
-.overlay{position:fixed;inset:0;background:rgba(10,3,20,.82);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(2px);}
-.overlay.hidden{display:none;}
-.panel{
-  background:var(--cream);color:var(--ink);border:5px solid var(--ink);border-radius:20px;
-  box-shadow:0 12px 0 var(--ink),0 22px 50px rgba(0,0,0,.6);
-  padding:clamp(16px,4vmin,34px);max-width:min(94vw,560px);max-height:92dvh;overflow:auto;
-  text-align:center;transform:rotate(-1deg);animation:panelIn .35s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes panelIn{from{transform:scale(.6) rotate(-7deg);opacity:0;}}
-.panel h1{font-family:var(--disp);font-size:clamp(24px,7vmin,52px);line-height:1.05;color:var(--pink);text-shadow:3px 3px 0 var(--gold),5px 5px 0 var(--ink);}
-.panel h2{font-family:var(--disp);font-size:clamp(17px,4.5vmin,30px);margin-bottom:8px;}
-.panel p{font-weight:700;margin:8px 0;font-size:clamp(12px,2.9vmin,16px);}
-.panel .tiny{font-size:clamp(9px,2.2vmin,12px);opacity:.7;}
-.wob{display:inline-block;animation:wobble 1.6s ease-in-out infinite;}
-.wob:nth-child(2n){animation-delay:.2s;}.wob:nth-child(3n){animation-delay:.4s;}
-@keyframes wobble{0%,100%{transform:rotate(-5deg) translateY(0);}50%{transform:rotate(5deg) translateY(-5px);}}
-.titleRow{display:flex;justify-content:space-between;gap:8px;border-bottom:2px dashed #0003;padding:5px 2px;font-weight:800;font-size:clamp(11px,2.7vmin,15px);}
-.titleRow .tt{color:#a1125a;font-weight:900;}
-.sceneLine{margin:7px 0;font-weight:800;font-size:clamp(12px,3vmin,16px);}
-.sceneLine b{color:#a1125a;}
-#cheatMenu{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:95;display:none;gap:8px;}
-#cheatMenu.on{display:flex;}
-@media (max-width:560px){
-  #table{height:min(60vw,340px);}
-  #seat2,#seat3{top:-6%;}
-  .plate{font-size:8.5px;padding:1px 5px;}
-  .btn{min-width:60px;padding:8px 8px;}
-}
-@media (max-height:560px){
-  #hatBox{display:none;}
-  #ribbon{padding:2px 8px;}
-}
+  html,body{margin:0;padding:0;height:100%;background:#05060a;overflow:hidden;
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    -webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;}
+  #c{display:block;position:fixed;inset:0;cursor:crosshair;
+    filter:saturate(1.15) contrast(1.05);}
+  #hint{position:fixed;left:10px;bottom:6px;color:#4a5a66;font:11px ui-monospace,monospace;
+    pointer-events:none;letter-spacing:.5px;z-index:5;opacity:.7}
 </style>
 </head>
 <body>
-<div id="dust"></div>
-<div id="stage">
-
-  <div id="ribbon">
-    <span id="roundTag">РАУНД 0/8</span>
-    <div id="ruleBox">
-      <div id="ruleName">🎰 БЕЗУМНЫЙ ПОКЕР</div>
-      <div id="ruleDesc">правила выдумываются на ходу</div>
-    </div>
-    <span style="display:flex;gap:6px;">
-      <button class="ribbonBtn" id="btnRestart" title="заново">🔄</button>
-      <button class="ribbonBtn" id="btnSound">🔊</button>
-    </span>
-  </div>
-
-  <div id="tableWrap">
-    <div id="table">
-      <div id="hatBox">
-        <svg viewBox="0 0 100 80">
-          <ellipse cx="50" cy="66" rx="46" ry="11" fill="#1c0b2b" stroke="#ffcf3f" stroke-width="3"/>
-          <rect x="26" y="12" width="48" height="52" rx="8" fill="#2a1140" stroke="#ffcf3f" stroke-width="3"/>
-          <rect x="26" y="44" width="48" height="10" fill="#ff2e88"/>
-          <text x="50" y="38" text-anchor="middle" font-size="16">✨</text>
-        </svg>
-        <div id="hatLabel">ДИЛЕР</div>
-      </div>
-      <div id="center">
-        <div id="potBox">БАНК: 0 💰</div>
-        <div id="chaosRow"></div>
-        <div id="chaosLabel">— С Т О Л —</div>
-      </div>
-    </div>
-    <div id="seats"></div>
-    <div id="runner">🐔</div>
-  </div>
-
-  <div id="controls">
-    <div id="timerBar"><i></i></div>
-    <div id="btnRow">
-      <button class="btn pink" id="bCluck" style="display:none;">КУДАХ! 🐔</button>
-      <button class="btn red" id="bFold">ФОЛД <small>🫣 сдаться</small></button>
-      <button class="btn" id="bCall">ЧЕК <small>✋ бесплатно</small></button>
-      <button class="btn cyan" id="bRaise">РЕЙЗ <small>🔥 +20</small></button>
-      <button class="btn pink" id="bAllin">ALL-IN <small>🚀 всё!</small></button>
-      <button class="btn" id="bCheat" style="background:#b46cff;color:#fff;">🍕×3 <small>чит</small></button>
-    </div>
-    <div id="turnInfo">…</div>
-  </div>
-
-  <div id="dealerLog"><b>🎩 Дилер:</b> <span id="dealerText">Добро пожаловать в казино «Три Петуха». Фишки стерильные.</span></div>
-</div>
-
-<div id="stamp"></div>
-<div id="flash"></div>
-<div id="toasts"></div>
-<div id="cheatMenu">
-  <button class="btn cyan" id="cPeek">👁 ПОДГЛЯДЕТЬ</button>
-  <button class="btn pink" id="cSwap">🔄 ПОДМЕНИТЬ</button>
-</div>
-<canvas id="fx"></canvas>
-
-<!-- СТАРТ -->
-<div class="overlay" id="ovStart">
-  <div class="panel">
-    <h1><span class="wob">Б</span><span class="wob">Е</span><span class="wob">З</span><span class="wob">У</span><span class="wob">М</span><span class="wob">Н</span><span class="wob">Ы</span><span class="wob">Й</span><br>ПОКЕР</h1>
-    <p>Техасский холдем, который сходил в отпуск в Лас-Вегас и вернулся <b>не таким</b>.</p>
-    <p>🎩 Каждый раунд — новое безумное правило.<br>🐔 Карты едят, взрывают и воруют.<br>🤡 Боты творят дичь и уходят за пиццей.</p>
-    <p class="tiny" id="recordLine"></p>
-    <button class="btn big" id="btnPlay" style="font-size:clamp(16px,4.5vmin,26px);padding:12px 26px;">🎰 ПОЕХАЛИ!</button>
-    <p class="tiny">побеждает тот, кто выжил и просмеялся</p>
-  </div>
-</div>
-
-<!-- СЦЕНА МЕЖДУ РАУНДАМИ -->
-<div class="overlay hidden" id="ovScene">
-  <div class="panel">
-    <h2 id="sceneTitle">ПЕРЕРЫВ</h2>
-    <div id="sceneBody"></div>
-  </div>
-</div>
-
-<!-- ФИНАЛ -->
-<div class="overlay hidden" id="ovEnd">
-  <div class="panel">
-    <h2 id="endHead">🏆</h2>
-    <div id="endRows"></div>
-    <p id="endQuote" style="font-style:italic;"></p>
-    <button class="btn big" id="btnAgain">🔁 ЕЩЁ ПАРТИЮ!</button>
-    <button class="btn cyan" id="btnShare">📤 СКИНУТЬ В ЧАТ</button>
-  </div>
-</div>
-
+<canvas id="c"></canvas>
+<div id="hint">1–6 кнопки · F — выйти из комнаты · ПРОБЕЛ — чек/колл · R — поднять · C — поцеловать карту · B — покормить стол · M — звук</div>
 <script>
-/* ============================================================
-   0. УТИЛИТЫ
-============================================================ */
-const $=s=>document.querySelector(s);
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const ri=n=>Math.floor(Math.random()*n);
-const rnd=(a,b)=>a+Math.random()*(b-a);
-const pick=a=>a[ri(a.length)];
-const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=ri(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const LS={
-  get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-};
+"use strict";
+/* =========================================================================
+   ШИЗОПОКЕР «СТОЛ НА КРАЮ ЧЕРЕПА»
+   Покер, из которого вынули хребет. Один файл. Canvas. WebAudio. Без библиотек.
+   ========================================================================= */
 
-/* ============================================================
-   1. ЗВУК — весь синтез, никаких файлов
-============================================================ */
-const SND={
-  ctx:null,on:LS.get('mp_sound',true),
-  ac(){ if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}} if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume(); return this.ctx;},
-  tone(f,dur,type='sine',vol=.18,slide=0){
-    if(!this.on)return;const c=this.ac();if(!c)return;
-    const o=c.createOscillator(),g=c.createGain();
-    o.type=type;o.frequency.setValueAtTime(f,c.currentTime);
-    if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),c.currentTime+dur);
-    g.gain.setValueAtTime(vol,c.currentTime);
-    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
-    o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+dur);
+/* ---------- 0. ХОЛСТ / РАЗМЕРЫ ---------- */
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, U = 1;          // U — универсальный масштаб
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.floor(W * DPR); cv.height = Math.floor(H * DPR);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  U = Math.min(W, H) / 820;
+}
+window.addEventListener('resize', resize); resize();
+
+/* ---------- 1. УТИЛИТЫ БЕЗУМИЯ ---------- */
+const TAU = Math.PI * 2;
+const rnd  = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random() * (b - a);
+const ri   = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const chance = p => Math.random() < p;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp  = (a, b, t) => a + (b - a) * t;
+const ease  = t => 1 - Math.pow(1 - t, 3);
+const easeB = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; }
+function hash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return (h>>>0)/4294967295; }
+function nz(s,i){ return hash(s+'#'+i); }              // детерминированный шум
+function wob(s,t,a){ return Math.sin(t*1.7+s)*a + Math.sin(t*3.1+s*2)*a*.45; }
+function rgba(r,g,b,a){ return 'rgba('+r+','+g+','+b+','+a+')'; }
+
+/* ---------- 2. ЗВУК: СИНТЕЗИРОВАННЫЙ КОШМАР ---------- */
+const A = {
+  ok:false, on:true, ctx:null, mg:null, lp:null, det:0,
+  boot(){
+    if (this.ctx) return;
+    try { const C = window.AudioContext || window.webkitAudioContext; this.ctx = new C(); }
+    catch(e){ return; }
+    this.mg = this.ctx.createGain(); this.mg.gain.value = this.on ? 0.5 : 0;
+    this.mg.connect(this.ctx.destination);
+    // вечный гул палаты
+    this.lp = this.ctx.createBiquadFilter(); this.lp.type='lowpass'; this.lp.frequency.value = 240; this.lp.Q.value = 6;
+    const g = this.ctx.createGain(); g.gain.value = 0.075;
+    this.lp.connect(g); g.connect(this.mg);
+    [43.5, 44.2, 65.4].forEach((f,i)=>{
+      const o = this.ctx.createOscillator(); o.type = i===2 ? 'triangle' : 'sawtooth';
+      o.frequency.value = f; o.detune.value = i*7; o.connect(this.lp); o.start();
+    });
+    const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.07;
+    const lg = this.ctx.createGain(); lg.gain.value = 90;
+    lfo.connect(lg); lg.connect(this.lp.frequency); lfo.start();
+    this.ok = true;
   },
-  noise(dur,vol=.2,fq=1000,type='highpass'){
-    if(!this.on)return;const c=this.ac();if(!c)return;
-    const len=c.sampleRate*dur,buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
-    for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
-    const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
-    s.buffer=buf;f.type=type;f.frequency.value=fq;
-    g.gain.setValueAtTime(vol,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
-    s.connect(f).connect(g).connect(c.destination);s.start();
+  set(on){ this.on = on; if (this.mg) this.mg.gain.value = on ? 0.5 : 0; },
+  now(){ return this.ctx ? this.ctx.currentTime : 0; },
+  tone(f, d, type, vol, slide){
+    if (!this.ok || !this.on) return;
+    const t = this.now(), o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(Math.max(20, f), t);
+    o.detune.value = this.det;
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(20, slide), t + d);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.18, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(this.mg); o.start(t); o.stop(t + d + 0.06);
   },
-  ding(){this.tone(1318,.09,'triangle',.22);setTimeout(()=>this.tone(1760,.14,'triangle',.18),55);},
-  flip(){this.noise(.07,.15,2400);},
-  whoosh(){this.noise(.3,.12,600,'bandpass');},
-  tick(){this.tone(880+ri(300),.03,'square',.06);},
-  boom(){this.tone(64,.6,'sine',.5,-40);this.noise(.5,.4,300,'lowpass');},
-  cluck(){this.tone(740,.08,'square',.2,-300);setTimeout(()=>this.tone(620,.09,'square',.2,-260),100);setTimeout(()=>this.tone(500,.14,'square',.18,-320),210);},
-  drum(){for(let i=0;i<9;i++)setTimeout(()=>{this.tone(150,.07,'sine',.3,-90);this.noise(.04,.12,500,'lowpass');},i*95);},
-  applause(){if(!this.on)return;for(let i=0;i<26;i++)setTimeout(()=>this.noise(.05,.1,1500+ri(2500),'bandpass'),i*60+ri(60));},
-  sad(){this.tone(392,.25,'sawtooth',.12,-60);setTimeout(()=>this.tone(311,.4,'sawtooth',.12,-80),220);},
-  jingle(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.tone(f,.16,'triangle',.2),i*110));},
-  crunch(){for(let i=0;i<3;i++)setTimeout(()=>this.noise(.08,.22,900,'lowpass'),i*90);},
-  shout(txt){
-    if(!this.on)return;
-    try{
-      if('speechSynthesis' in window){
-        const u=new SpeechSynthesisUtterance(txt);u.lang='ru-RU';u.rate=1.1;u.pitch=.5;u.volume=.9;
-        speechSynthesis.speak(u);
-      }else this.tone(180,.5,'sawtooth',.3,-60);
-    }catch(e){}
-  }
+  noise(d, vol, fq, type){
+    if (!this.ok || !this.on) return;
+    const t = this.now(), len = Math.max(1, Math.floor(this.ctx.sampleRate * d));
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate), dt = buf.getChannelData(0);
+    for (let i=0;i<len;i++) dt[i] = (Math.random()*2-1) * (1 - i/len);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const bq = this.ctx.createBiquadFilter(); bq.type = type || 'bandpass';
+    bq.frequency.value = fq || 1200; bq.Q.value = 1.2;
+    const g = this.ctx.createGain(); g.gain.value = vol || 0.2;
+    src.connect(bq); bq.connect(g); g.connect(this.mg); src.start(t);
+  },
+  card(){ this.noise(0.09, 0.22, 2600, 'highpass'); this.tone(rnd(500,900), 0.05, 'square', 0.05); },
+  flip(){ this.noise(0.13, 0.18, 1500); this.tone(320, 0.09, 'triangle', 0.09, 180); },
+  tooth(){ this.tone(rnd(1400,2000), 0.06, 'square', 0.05); this.noise(0.05, 0.1, 4200, 'highpass'); },
+  chip(){ for (let i=0;i<4;i++) setTimeout(()=>this.tooth(), i*45); },
+  clack(){ this.tone(180, 0.07, 'square', 0.12, 90); this.noise(0.04, 0.14, 700); },
+  bell(){ this.tone(880, 0.9, 'sine', 0.14); this.tone(1320, 1.2, 'sine', 0.07); this.tone(220, 1.4, 'triangle', 0.05); },
+  telegram(){ this.tone(1500, 0.05, 'square', 0.08); setTimeout(()=>this.tone(1100,0.05,'square',0.08),70); setTimeout(()=>this.tone(1700,0.09,'square',0.07),150); },
+  scream(){ this.tone(rnd(300,420), 0.9, 'sawtooth', 0.13, 1400); this.noise(0.7, 0.09, 900, 'bandpass'); this.det = 35; setTimeout(()=>this.det=0, 900); },
+  bluescreen(){ this.tone(940, 0.12, 'square', 0.14); setTimeout(()=>this.tone(690,0.12,'square',0.14),130); setTimeout(()=>this.tone(1200,0.5,'sawtooth',0.1,60),270); this.noise(0.5,0.12,300); },
+  glitch(){ this.noise(0.18, 0.14, rnd(300,3000)); this.tone(rnd(60,240), 0.14, 'square', 0.08, rnd(60,900)); },
+  thump(soft){ this.tone(soft?52:46, 0.24, 'sine', soft?0.1:0.2, 26); },
+  win(){ [523,659,784,1046,1318].forEach((f,i)=>setTimeout(()=>this.tone(f,0.5,'triangle',0.13,f*0.75), i*95)); },
+  bust(){ [400,330,260,200,150,90].forEach((f,i)=>setTimeout(()=>this.tone(f,0.7,'sawtooth',0.12,f*0.5), i*140)); },
+  hum(n){ this.tone(200 + n*30, 0.15, 'sine', 0.06); }
 };
-document.addEventListener('pointerdown',()=>SND.ac(),{once:true});
 
-/* ============================================================
-   2. ДАННЫЕ: КАРТЫ, ПРАВИЛА, СПЕЦКАРТЫ, ПРОКЛЯТИЯ
-============================================================ */
-const SUITS=['♠','♥','♦','♣'];
-const RED=new Set(['♥','♦']);
-const RNAMES={11:'В',12:'Д',13:'К',14:'Т'};
-const rName=r=>RNAMES[r]||String(r);
-const EMOJI_RANK={2:'🐣',3:'🌱',4:'🍄',5:'🐸',6:'🐝',7:'🎲',8:'🐙',9:'🦉',10:'🦖',11:'🤴',12:'👸',13:'🫅',14:'👹'};
-
-const SPECIALS={
-  joker:{e:'🃏',n:'Джокер',d:'становится лучшей картой'},
-  rooster:{e:'🐔',n:'Петух',d:'съедает карту'},
-  bomb:{e:'💣',n:'Бомба',d:'взрывает масть'},
-  portal:{e:'🌀',n:'Портал',d:'выворачивает масть'},
-  banana:{e:'🍌',n:'Банан',d:'подсказывает сброс'},
-  reverse:{e:'🔄',n:'Реверс',d:'слабые побеждают'},
-  hat:{e:'🎩',n:'Шляпа',d:'прячет карту'},
-  clover:{e:'🍀',n:'Клевер',d:'удваивает следующий эффект'},
-  eye:{e:'👁️',n:'Глаз',d:'видит всех насквозь'},
-  hole:{e:'🕳️',n:'Дыра',d:'в ней деньги'},
-  octopus:{e:'🐙',n:'Осьминог',d:'копирует эффект'},
-  magnet:{e:'🧲',n:'Магнит',d:'тянет чужое'},
-  bone:{e:'🦴',n:'Кость',d:'переброс'},
-  rain:{e:'🌧️',n:'Дождь',d:'одна масть на всех'},
-  snail:{e:'🐌',n:'Улитка',d:'тормозит'},
-  clown:{e:'🤡',n:'Клоун',d:'меняет карты местами'},
-  duck:{e:'🦆',n:'Утёнок',d:'кря'},
-  ice:{e:'🧊',n:'Лёд',d:'замораживает'},
-  fire:{e:'🔥',n:'Огонь',d:'жжёт слабое'},
-  crown:{e:'👑',n:'Корона',d:'+1 к картам'},
-};
-const SPEC_POOL=['joker','joker','rooster','rooster','bomb','portal','banana','reverse','hat','clover','eye','hole','octopus','magnet','bone','rain','clown','duck','ice','fire','crown','snail'];
-
-const RULES=[
-  {id:'reverse',e:'🔄',n:'НАОБОРОТ',d:'Побеждает САМАЯ СЛАБАЯ рука. Лузеры, ликуйте!'},
-  {id:'spadesWild',e:'♠',n:'ПИКИ — ДЖОКЕРЫ',d:'Любая пика теперь какая захочет карта.'},
-  {id:'sixth',e:'6️⃣',n:'ВСЕМ ПО ШЕСТОЙ',d:'Дилер раздаёт всем по шестой карте. Щедрость!'},
-  {id:'noPairs',e:'🚫',n:'ПАРЫ ЗАПРЕЩЕНЫ',d:'Пары объявлены вне закона. Полиция нравов следит.'},
-  {id:'colors',e:'🎨',n:'ЦВЕТА ПОМЕНЯЛИСЬ',d:'Красное стало чёрным. Флеши сошли с ума.'},
-  {id:'passHands',e:'🔀',n:'ОБМЕН РУКАМИ',d:'Все передают карты соседу слева. Никто не доволен.'},
-  {id:'wildSuit',e:'🌟',n:'ДИКАЯ МАСТЬ',d:'Одна масть стала джокером. Какая — дилер помнит.'},
-  {id:'twoAce',e:'2️⃣',n:'ДВОЙКИ — ТУЗЫ',d:'Двойки прошли курсы повышения квалификации.'},
-  {id:'aceTwo',e:'📉',n:'ТУЗЫ — ДВОЙКИ',d:'Тузы депремированы. Профсоюз молчит.'},
-  {id:'doublePot',e:'💰',n:'ДВОЙНОЙ БАНК',d:'Выигрыш удваивается. Фишки появятся из воздуха.'},
-  {id:'allSee',e:'👀',n:'ВСЕ ВИДЯТ ВСЁ',d:'Все карты раскрыты. Приватность — для трусов.'},
-  {id:'future',e:'🔮',n:'РУКА ИЗ БУДУЩЕГО',d:'Вы увидите карту, которая упадёт на стол.'},
-  {id:'oldDealer',e:'👴',n:'СТАРЫЙ ДИЛЕР',d:'Дилер что-то забыл. Правило может «вспомниться».'},
-  {id:'mercy',e:'🥺',n:'ЖАЛОСТЬ ДИЛЕРА',d:'Последнему выплатят из жалости. Унизительно, но приятно.'},
-  {id:'emoji',e:'😵',n:'ЭМОДЗИ-УЖАС',d:'Карты периодически забывают, кто они.'},
-  {id:'secret',e:'🤫',n:'СЕКРЕТНОЕ ПРАВИЛО',d:'Узнаете на вскрытии. Дилер хитро щурится.'},
+/* ---------- 3. КАРТЫ: МАСТИ, НОМИНАЛЫ, ПАМЯТЬ ---------- */
+const SUITS = [
+  { g:'♠', name:'Гвозди',   c:'#79d6ff', dark:'#0b2b3a' },
+  { g:'♥', name:'Зубы',     c:'#ff5f87', dark:'#3a0a19' },
+  { g:'♦', name:'Стёкла',   c:'#ffc44d', dark:'#3a2a06' },
+  { g:'♣', name:'Мотыльки', c:'#8dff9e', dark:'#0b3a16' }
 ];
-const SECRETS=[
-  {id:'hearts',say:'Побеждает тот, у кого больше ♥. Всё!',fn:p=>[10+p.hand.filter(c=>!c.gone&&c.suit==='♥').length]},
-  {id:'sum',say:'Побеждает самая большая СУММА карт. Тупо, но честно.',fn:p=>[p.hand.filter(c=>!c.gone).reduce((s,c)=>s+(c.rank||0),0)]},
-  {id:'faces',say:'Побеждает тот, у кого больше картинок (В/Д/К/Т)!',fn:p=>[p.hand.filter(c=>!c.gone&&c.rank>=11).length*10]},
-  {id:'nospades',say:'Побеждает тот, у кого МЕНЬШЕ пик. Пиццы, то есть пик.',fn:p=>[30-p.hand.filter(c=>!c.gone&&c.suit==='♠').length*10]},
-  {id:'chicken',say:'Побеждает владелец самой МЛАДШЕЙ карты. Скромность — золото.',fn:p=>{const h=p.hand.filter(c=>!c.gone);return h.length?[40-Math.min(...h.map(c=>c.rank||20))]:[0];}},
-];
+const RSHORT = ['2','3','4','5','6','7','8','9','10','В','Д','К','Т'];
+const RVAL   = ['Двойка','Тройка','Четвёрка','Пятёрка','Шестёрка','Семёрка','Восьмёрка','Девятка','Десятка','Валет','Дама','Король','Туз'];
+const RNICK  = ['Гнилушка','Три козы','Трупный стул','Четыре стены','Пятый угол','Семь бед','Восемь лап','Девять ртов','Десяточка','Кто-то в дверях','Мадам Шёпот','Старик с пилой','Ангел-должник'];
+const CATN   = ['Стена без окон','Одна пара','Две пары','Три в ряд','Дырявый ряд (стрит)','Флеш-из-глаз','Полный гроб','Каре','Стрит-флеш','ПАРА-БОГ','Флеш-труп'];
 
-const CURSES={
-  chicken:{e:'🐔',n:'Курица',d:'кудахчь перед каждой ставкой'},
-  mute:{e:'🤐',n:'Молчун',d:'говори только эмодзи'},
-  mirror:{e:'🔄',n:'Зеркало',d:'видишь чужие карты, а свои — нет'},
-  hatter:{e:'🎩',n:'Шляпник',d:'твои карты видят ВСЕ'},
-  snail:{e:'🐌',n:'Улитка',d:'кнопки прогреваются 5 секунд'},
-  clown:{e:'🎪',n:'Клоун',d:'выигрыш урезан вдвое'},
-  duck:{e:'🦆',n:'Утёнок',d:'фолд запрещён. кря.'},
-};
-
-const CAT_NAMES=['Рука украдена 😱','Старшая карта','Пара','Две пары','Тройка','Стрит','Флеш','Фулл-хаус','Каре','СТРИТ-ФЛЕШ!!'];
-
-/* ---------- БОТЫ ---------- */
-const BOTS=[
-  {id:1,name:'Боря',emoji:'💪'},
-  {id:2,name:'Люся',emoji:'🧣'},
-  {id:3,name:'Гоша',emoji:'🤓'},
-  {id:4,name:'Тётя Зина',emoji:'👵'},
-];
-const LINES={
-  1:{bet:['Ставлю и не парюсь.','Фишки на стол!','Лёгкие деньги.','Мне карта прёт.'],
-     allin:['ВА-БАНК И БЕЗ РАЗГОВОРОВ!','Я родился с парой на руках!','ВСЁ! Даже мелочь!'],
-     fold:['Ладно, ухожу красиво.','Это была стратегия.'],
-     win:['Говорил же — я гений!','Кто тут папа?!'],
-     lose:['Да вы жулики!','Это была разминка.'],
-     suspect:['Что-то ты слишком часто выигрываешь…','Я за тобой слежу. 👀'],
-     effect:['КТО СЪЕЛ МОЙ ТУЗ?!','Эй, это была моя карта!']},
-  2:{bet:['Я боюсь, но ставлю…','Только не смотрите в мои карты!','Ой-ой-ой…'],
-     allin:['ААААА! ВА-БАНК!!!','Простите меня ВСЕ!'],
-     fold:['Всё, я в домике. 🏠','Нет-нет-нет-нет!'],
-     win:['Я?! ПРАВДА я?! Ой мамочки!'],
-     lose:['Так и знала…','Я чувствовала беду…'],
-     suspect:['У тебя подозрительно хорошие карты…'],
-     effect:['ААА! Что происходит?!','Я знала! Я ЧУВСТВОВАЛА!']},
-  3:{bet:['Карта молчит. И я молчу.','Ставлю на вечность.','Две карты — это уже философия.'],
-     allin:['Всё суета. Кроме ва-банка.','Бытие определяет ставку.'],
-     fold:['Ухожу в астрал.'],
-     win:['Победа — лишь иллюзия. Но приятная.'],
-     lose:['Поражение закаляет дух.'],
-     suspect:['Твоя удача статистически невозможна…'],
-     effect:['Интересный поворот бытия…','Экзистенциальный кризис карт.']},
-  4:{bet:['Рискни, милок!','Ставлю как в 1974-м!','Фишечки мои родимые…'],
-     allin:['ВА-БАНК, деточки! Пенсия не ждёт!','В моё время так не смели!'],
-     fold:['Ох, поясница не велит.'],
-     win:['Внучата, я в плюсе!','А бабушка ещё ого-го!'],
-     lose:['Ох обманули бабушку…'],
-     suspect:['Что-то ты, милка, мухлюешь…'],
-     effect:['Кудах-кудах, что творится!','В моё время карты были послушнее!']},
-};
-
-const DEALER_SAYS=[
-  'Фишки стерильные, не облизывайте.',
-  'Я работаю 36 часов подряд. Это нормально.',
-  'Правила утверждены вчера. Утра не было.',
-  'Касса закрыта. Навсегда.',
-  'Петух — уважаемый сотрудник казино.',
-  'Не смотрите дилеру в глаза.',
-  'Выход там же, где вход. Теоретически.',
-  'Сегодня без обмана. Ну почти.',
-  'Банк может лопнуть. Как и ваши надежды.',
-  'Карты тасованы силой мысли.',
-];
-const SCENES=[
-  {t:'⚡ ССОРА',l:[[1,'Люся, зачем ты поставила МОИ фишки?!'],[2,'Они лежали одиноко… им было грустно…']]},
-  {t:'🤝 ПЕРЕМИРИЕ',l:[[4,'Боря, держи пирожок с ливером.'],[1,'Ладно. Мир. Но пирожков два.']]},
-  {t:'🕵️ СГОВОР',l:[[3,'Если Зина снова идёт ва-банк — все фолдят.'],[4,'Я ВСЁ СЛЫШУ, ГОША!']]},
-  {t:'🔥 СКАНДАЛ',l:[[2,'Я видела у Бори туз в рукаве!'],[1,'Это МОЙ рукав и МОЙ туз!']]},
-  {t:'🧘 ДЗЕН',l:[[3,'Карты — лишь тени на стене покера…'],[1,'Гоша, не начинай.']]},
-  {t:'📊 АНАЛИТИКА',l:[[4,'Я посчитала: выигрывает тот, кто выигрывает.'],[3,'Гениально. Просто. Страшно.']]},
-];
-
-/* ============================================================
-   3. СОСТОЯНИЕ ИГРЫ
-============================================================ */
-const BLIND=10, RAISE=20, MAX_RAISES=3, ROUNDS=8;
-let G={};
-function freshPlayer(def,human){
-  return Object.assign({human:!!human,chips:100,absurd:0,pizza:human?3:0,hand:[],folded:false,allin:false,
-    contrib:0,acted:false,mood:0,curses:[],absent:false,forcedRaise:false,snailBit:false,
-    stats:{wins:0,losses:0,allins:0,folds:0,cheats:0,cursesTaken:0,chaosWins:0}},def);
+let CARDUID = 0;
+function mkCard(s, b){
+  return { uid:++CARDUID, s:s, b:b, r:b, up:false, owner:-1, onBoard:false,
+    x:-120, y:-120, tx:0, ty:0, rot:0, trot:0, sc:0.2, tsc:1,
+    ph:rnd(TAU), glow:0, slide:0, slideTo:0, dead:false, crack:0, bite:0, born:0 };
 }
-function newGame(){
-  G={
-    epoch:(G.epoch||0)+1, round:0, phase:'idle',
-    players:[freshPlayer({id:0,name:'ВЫ',emoji:'😎'},true),...BOTS.map(b=>freshPlayer(b))],
-    deck:[],tableCards:[],pot:0,currentBet:BLIND,raises:0,
-    rule:null,mods:{},playerResolve:null,playerWinStreak:0,
-    highlights:[],roundEnded:false,cheatUsedRound:false,
-  };
-}
-const alive=()=>true;
-const pl=i=>G.players[i];
-const stayers=()=>G.players.filter(p=>!p.folded&&!p.absent);
-
-/* ============================================================
-   4. АВАТАРЫ БОТОВ (РИСОВАННЫЕ, С ЭМОЦИЯМИ)
-============================================================ */
-const LOOK={
-  1:{skin:'#f2b183',acc:'chain'},
-  2:{skin:'#ffd9c0',acc:'scarf'},
-  3:{skin:'#d8c39a',acc:'glasses'},
-  4:{skin:'#f7c99b',acc:'babushka'},
-};
-const EMO_DEF={
-  neutral:{eye:'dot',brow:0,mouth:'flat'},
-  happy:{eye:'dot',brow:-2,mouth:'grin'},
-  shocked:{eye:'wide',brow:-5,mouth:'o'},
-  sad:{eye:'dot',brow:4,mouth:'frown'},
-  angry:{eye:'slit',brow:7,mouth:'teeth'},
-  smirk:{eye:'dot',brow:-3,mouth:'smirk'},
-  eat:{eye:'happy',brow:0,mouth:'o'},
-  suspect:{eye:'slit',brow:5,mouth:'flat'},
-};
-function faceSVG(botId,emo='neutral'){
-  const L=LOOK[botId];
-  if(!L)return ''; // Игроку лицо не нужно
-  const E=EMO_DEF[emo]||EMO_DEF.neutral;
-  let acc='',extra='';
-  if(L.acc==='chain')acc=`<path d="M28 100 q32 18 64 0" stroke="#ffcf3f" stroke-width="7" fill="none"/><circle cx="60" cy="107" r="6" fill="#ffcf3f" stroke="#1c0b2b" stroke-width="2"/>`;
-  if(L.acc==='scarf')acc=`<path d="M18 40 Q60 2 102 40 L102 30 Q60 -8 18 30 Z" fill="#d81f45"/><circle cx="40" cy="26" r="3" fill="#fff"/><circle cx="66" cy="18" r="3" fill="#fff"/><circle cx="86" cy="28" r="3" fill="#fff"/>`;
-  if(L.acc==='glasses')acc=`<circle cx="44" cy="58" r="13" fill="rgba(180,230,255,.35)" stroke="#1c0b2b" stroke-width="3"/><circle cx="78" cy="58" r="13" fill="rgba(180,230,255,.35)" stroke="#1c0b2b" stroke-width="3"/><line x1="57" y1="58" x2="65" y2="58" stroke="#1c0b2b" stroke-width="3"/>`;
-  if(L.acc==='babushka')acc=`<path d="M16 46 Q60 -6 104 46 L96 52 Q60 12 24 52 Z" fill="#7a4fd0"/><circle cx="60" cy="14" r="7" fill="#7a4fd0"/><circle cx="24" cy="78" r="5" fill="#ffcf3f"/><circle cx="96" cy="78" r="5" fill="#ffcf3f"/><circle cx="34" cy="74" r="6" fill="#ff8fa3" opacity=".7"/><circle cx="86" cy="74" r="6" fill="#ff8fa3" opacity=".7"/>`;
-  const eye=(x)=>{
-    if(E.eye==='dot')return `<circle cx="${x}" cy="58" r="4.5" fill="#1c0b2b"/>`;
-    if(E.eye==='wide')return `<circle cx="${x}" cy="58" r="8" fill="#fff" stroke="#1c0b2b" stroke-width="2.5"/><circle cx="${x}" cy="58" r="3" fill="#1c0b2b"/>`;
-    if(E.eye==='slit')return `<rect x="${x-6}" y="56" width="12" height="4" rx="2" fill="#1c0b2b"/>`;
-    if(E.eye==='happy')return `<path d="M${x-6} 60 q6 -8 12 0" stroke="#1c0b2b" stroke-width="3" fill="none"/>`;
-    return '';
-  };
-  const brow=(x,dir)=>`<rect x="${x-8}" y="${45+E.brow*dir}" width="16" height="3.6" rx="1.8" fill="#1c0b2b" transform="rotate(${E.brow*4*dir} ${x} 46)"/>`;
-  let mouth='';
-  if(E.mouth==='flat')mouth=`<line x1="46" y1="82" x2="74" y2="82" stroke="#1c0b2b" stroke-width="3.5" stroke-linecap="round"/>`;
-  if(E.mouth==='grin')mouth=`<path d="M42 78 q18 18 36 0 z" fill="#7a1030" stroke="#1c0b2b" stroke-width="3"/><path d="M48 79 h24 v4 h-24 z" fill="#fff"/>`;
-  if(E.mouth==='o')mouth=`<ellipse cx="60" cy="84" rx="8" ry="10" fill="#7a1030" stroke="#1c0b2b" stroke-width="3"/>`;
-  if(E.mouth==='frown')mouth=`<path d="M44 88 q16 -14 32 0" stroke="#1c0b2b" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
-  if(E.mouth==='teeth')mouth=`<rect x="44" y="78" width="32" height="10" rx="3" fill="#fff" stroke="#1c0b2b" stroke-width="3"/><line x1="52" y1="78" x2="52" y2="88" stroke="#1c0b2b" stroke-width="2"/><line x1="60" y1="78" x2="60" y2="88" stroke="#1c0b2b" stroke-width="2"/><line x1="68" y1="78" x2="68" y2="88" stroke="#1c0b2b" stroke-width="2"/>`;
-  if(E.mouth==='smirk')mouth=`<path d="M46 84 q14 8 30 -4" stroke="#1c0b2b" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
-  return `<svg viewBox="0 0 120 120">
-    <circle cx="60" cy="62" r="46" fill="${L.skin}" stroke="#1c0b2b" stroke-width="4"/>
-    ${acc}
-    ${brow(44,1)}${brow(78,-1)}
-    ${eye(44)}${eye(78)}
-    <path d="M58 66 q2 6 -2 8" stroke="#c98a5e" stroke-width="3" fill="none"/>
-    ${mouth}${extra}
-  </svg>`;
-}
-function setEmo(p,emo){
-  if(!p||p.human)return;
-  const seat=$('#seat'+p.id);if(!seat)return;
-  const av=seat.querySelector('.avatar');if(!av)return;
-  av.innerHTML=faceSVG(p.id,emo);
-}
-
-/* ============================================================
-   5. ПОСТРОЕНИЕ СЦЕНЫ
-============================================================ */
-function buildScene(){
-  const seats=$('#seats');seats.innerHTML='';
-  const wrap=$('#tableWrap');
-  const positions={0:'left:50%;bottom:-1%;transform:translateX(-50%);',1:'',2:'',3:'',4:''};
-  for(const p of G.players){
-    const s=document.createElement('div');
-    s.className='seat';s.id='seat'+p.id;s.style.cssText=positions[p.id];
-    s.innerHTML=`
-      <div class="bubble" id="bub${p.id}"></div>
-      <div class="avatar">${p.human?'':faceSVG(p.id,'neutral')}</div>
-      <div class="plate">
-        <div class="nm">${p.human?'😎 ':''}${p.name}</div>
-        <div class="chips">💰<span id="ch${p.id}">${p.chips}</span> 🤪<span id="ab${p.id}">${p.absurd}</span></div>
-        <div class="badges" id="bd${p.id}"></div>
-      </div>
-      <div class="fan" id="fan${p.id}"></div>`;
-    seats.appendChild(s);
-  }
-  // гирлянда по периметру стола
-  const table=$('#table');
-  table.querySelectorAll('.bulb,.sticker').forEach(e=>e.remove());
-  for(let i=0;i<26;i++){
-    const b=document.createElement('div');b.className='bulb'+(i%2?' b2':'');
-    const t=i/26*Math.PI*2;
-    b.style.left=(50+49*Math.cos(t))+'%';b.style.top=(50+49*Math.sin(t))+'%';
-    table.appendChild(b);
-  }
-  const stickers=[['🍕','12%','70%',-12],['🐔','82%','22%',10],['💸','20%','18%',-8],['🎲','74%','76%',14],['🧻','46%','86%',6]];
-  for(const[em,l,t,r]of stickers){
-    const d=document.createElement('div');d.className='sticker';d.style.left=l;d.style.top=t;d.style.transform=`rotate(${r}deg)`;
-    d.innerHTML=em+(r%2?'':'');
-    table.appendChild(d);
-  }
-  const dust=$('#dust');dust.innerHTML='';
-  for(let i=0;i<12;i++){
-    const sp=document.createElement('span');const sz=rnd(2,5);
-    sp.style.cssText=`left:${rnd(0,100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(9,22)}s;animation-delay:${rnd(0,12)}s;`;
-    dust.appendChild(sp);
-  }
-}
-
-/* ============================================================
-   6. ОТРИСОВКА КАРТ И ИГРОКОВ
-============================================================ */
-function cardHTML(c,faceUp,isMe){
-  const sp=c.special?SPECIALS[c.special]:null;
-  const red=RED.has(c.suit);
-  let face;
-  if(sp){
-    face=`<div class="cr" style="color:#1c0b2b;">${sp.e}</div><div class="mid">${sp.e}</div><div class="sname">${sp.n}</div><div class="cb" style="color:#1c0b2b;">${sp.e}</div>`;
-  }else{
-    face=`<div class="cr">${rName(c.rank)}${c.suit}</div><div class="mid">${c.suit}</div><div class="cb">${rName(c.rank)}${c.suit}</div>`;
-  }
-  return `<div class="card ${isMe?'me':''} ${faceUp?'':'down'} ${red?'red':'blk'} ${c.spentcard?'spentcard':''} ${c.frozen?'frozen':''} ${c.exposed?'exposed':''}" data-id="${c.id}">
-    <div class="in"><div class="face">${face}</div><div class="back"></div></div>
-  </div>`;
-}
-function shouldFaceUp(p,c){
-  if(c.gone)return false;
-  if(p.human){
-    if(G.phase==='showdown'&&!p.folded)return true;
-    if(p.curses.some(x=>x==='mirror'))return G.phase!=='bet';
-    return true;
-  }
-  if(G.phase==='showdown'&&!p.folded)return true;
-  if(G.rule&&G.rule.id==='allSee')return true;
-  return !!c.revealed;
-}
-function renderHand(p,anim=false){
-  const fan=$('#fan'+p.id);if(!fan)return;
-  const cards=p.hand.filter(c=>!c.gone);
-  fan.innerHTML=cards.map((c,i)=>{
-    const up=shouldFaceUp(p,c);
-    return `<div style="animation-delay:${anim?i*70:0}ms;" class="dealtwrap">${cardHTML(c,up,p.human)}</div>`;
-  }).join('');
-  fan.querySelectorAll('.card').forEach(el=>{if(anim)el.classList.add('dealt');});
-}
-function renderAll(){for(const p of G.players)renderHand(p);}
-function updatePlates(){
-  for(const p of G.players){
-    $('#ch'+p.id).textContent=p.chips;
-    $('#ab'+p.id).textContent=p.absurd;
-    $('#bd'+p.id).textContent=p.curses.map(c=>CURSES[c].e).join('')+(p.allin?'🚀':'');
-    const seat=$('#seat'+p.id);
-    seat.classList.toggle('absent',p.absent);
-    if(p.human){
-      $('#bCheat').innerHTML=`🍕×${p.pizza} <small>чит</small>`;
-      $('#myNote')&&( $('#myNote').textContent = p.curses.length?('ПРОКЛЯТИЯ: '+p.curses.map(c=>CURSES[c].e+' '+CURSES[c].n).join(', ')):'' );
-    }
-  }
-  $('#potBox').textContent=`БАНК: ${G.pot} 💰`+(G.mods.doublePot?' ×2!':'');
-}
-function dealerSay(t){$('#dealerText').textContent=t;}
-function bubble(p,txt,ms=2400){
-  const b=$('#bub'+p.id);if(!b)return;
-  b.textContent=txt;b.classList.add('show');
-  clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),ms);
-}
-function toast(t,ms=2300){
-  const d=document.createElement('div');d.className='toast';d.textContent=t;
-  $('#toasts').appendChild(d);setTimeout(()=>d.remove(),ms);
-}
-function stampShow(t){
-  const s=$('#stamp');s.textContent=t;s.classList.remove('show');void s.offsetWidth;s.classList.add('show');
-}
-function flash(dark=false){
-  const f=$('#flash');f.className='';f.classList.toggle('dark',dark);void f.offsetWidth;f.classList.add('go');
-}
-function shake(){const s=$('#stage');s.classList.remove('shaking');void s.offsetWidth;s.classList.add('shaking');}
-function floatText(p,txt){
-  const seat=$('#seat'+p.id);if(!seat)return;
-  const f=document.createElement('div');f.className='floater';f.textContent=txt;
-  f.style.left='50%';f.style.top='10%';f.style.transform='translateX(-50%)';
-  seat.style.position='absolute';seat.appendChild(f);
-  setTimeout(()=>f.remove(),1400);
-}
-function setTurn(p,on){$('#seat'+p.id).classList.toggle('turn',on);}
-function runRooster(){
-  const r=$('#runner');r.classList.remove('go');void r.offsetWidth;r.classList.add('go');
-  setTimeout(()=>r.classList.remove('go'),1400);
-}
-
-/* ============================================================
-   7. КОЛОДА И РАЗДАЧА
-============================================================ */
-let UID=1;
-function buildDeck(){
-  const d=[];
-  for(const s of SUITS)for(let r=2;r<=14;r++)d.push({id:UID++,suit:s,rank:r,special:null});
-  for(const t of SPEC_POOL)d.push({id:UID++,suit:pick(SUITS),rank:1,special:t});
+function newDeck(){
+  const d = [];
+  for (let s=0;s<4;s++) for (let b=0;b<13;b++) d.push(mkCard(s,b));
   return shuffle(d);
 }
-const drawCard=()=>G.deck.length?G.deck.pop():{id:UID++,suit:pick(SUITS),rank:ri(13)+2,special:null};
+/* память карт: они всё помнят */
+const MEM = [];
+for (let i=0;i<52;i++) MEM.push({ grudge:0, love:0, folds:0, eaten:0, wins:0, lost:0, last:-1 });
+function mem(c){ return MEM[c.s*13 + c.b]; }
+function cname(c){ return RSHORT[c.r] + SUITS[c.s].g + ' — ' + SUITS[c.s].name; }
+function memTotal(){ let n=0; for (const m of MEM) n += m.grudge + m.eaten*2 + m.folds; return n; }
 
-async function dealAll(){
-  for(const p of G.players){p.hand=[];if(p.absent)continue;}
-  for(let k=0;k<5;k++){
-    for(const p of G.players){
-      if(p.absent)continue;
-      p.hand.push(drawCard());
-      renderHand(p,true);
-      SND.flip();
+/* ---------- 4. АНТИ-ЗАКОНЫ СТОЛА ---------- */
+/* Каждый закон — набор флагов, реально меняющих оценку руки и жизнь стола. */
+const LAWS = [
+  { id:'pain',  t:'ЗАКОН ЗУБНОЙ БОЛИ', s:'Флеш теперь хуже любой пары. Зубы плачут.' ,
+    f:{ demoteFlush:true } },
+  { id:'inv',   t:'МИР НАИЗНАНКУ',     s:'Комбинации перевёрнуты. Мусор побеждает.' ,
+    f:{ invert:true } },
+  { id:'suit',  t:'МАСТЬ ПЕРЕД НОМИНАЛОМ', s:'Кто кем, а не кто кем был в прошлой жизни.',
+    f:{ suitFirst:true } },
+  { id:'deuce', t:'ДВОЙКИ — ТУЗЫ',      s:'Гнилушка стала ангелом-должником.',
+    f:{ wildDeuce:true } },
+  { id:'odd',   t:'НЕРОВНЫЕ ИЛИ НИЧЕГО', s:'Чётные карты считаются мебелью.',
+    f:{ oddOnly:true } },
+  { id:'pair',  t:'ПАРА ПРАВИТ МИРОМ',  s:'Любая пара бьёт стрит-флеш. Так решил стол.',
+    f:{ pairSupreme:true } },
+  { id:'nobrd', t:'СТОЛА НЕ СУЩЕСТВУЕТ', s:'Борд — слух. Играй только своим мясом.',
+    f:{ ignoreBoard:true } },
+  { id:'ante',  t:'АНТЕ ДВОЯТСЯ',       s:'Палата требует двойную порцию зубов.',
+    f:{ anteDouble:true } },
+  { id:'storm', t:'СТОЛ ГОЛОДНЕЕ',      s:'Ранги карт дрейфуют вдвое активнее.',
+    f:{ driftStorm:true } },
+  { id:'hush',  t:'ТИХИЙ ЧАС',          s:'Соседи боятся повышать. Они просто дышат.',
+    f:{ botsPassive:true } },
+  { id:'bub',   t:'ПУЗЫРЧАТАЯ РЕАЛЬНОСТЬ', s:'Каждое действие может сменить масть на борду.',
+    f:{ suitBubble:true } },
+  { id:'sanc',  t:'САНКЦИИ ПСИХЕИ',     s:'Каждое действие выедает рассудок вдвое.',
+    f:{ sanityTax:true } },
+  { id:'mirr',  t:'ЗАКОН ЗЕРКАЛА',      s:'Кнопки путают руки. Нажимай наугад.',
+    f:{ mirror:true } },
+  { id:'grave', t:'МЁРТВЫЕ ГОЛОСуют',   s:'Сброшенные карты этого стола тоже участвуют.',
+    f:{ graveVote:true } },
+  { id:'threel',t:'ТРИ ПОСЛЕДНИХ',      s:'Последние три карты борда — твои зубы.',
+    f:{ boardTail:true } },
+  { id:'moth',  t:'МОТЫЛЁК ГОЛОДЕН',    s:'Дилер съедает по карте с борда каждую улицу.',
+    f:'eatBoard' }
+];
+LAWS[15].f = { eatBoard:true };
+function baseFlags(){
+  return { demoteFlush:false, invert:false, suitFirst:false, wildDeuce:false, oddOnly:false,
+    pairSupreme:false, ignoreBoard:false, anteDouble:false, driftStorm:false, botsPassive:false,
+    suitBubble:false, sanityTax:false, mirror:false, graveVote:false, boardTail:false, eatBoard:false };
+}
+
+/* ---------- 5. ОЦЕНЩИК РУК (с учётом анти-законов) ---------- */
+function combos(arr, k){
+  const out=[], n=arr.length;
+  if (n < k) { out.push(arr.slice()); return out; }
+  const idx=[], i=0;
+  (function rec(start, depth){
+    if (depth === k){ out.push(idx.map(j=>arr[j])); return; }
+    for (let j=start; j<=n-(k-depth); j++){ idx[depth]=j; rec(j+1, depth+1); }
+  })(0,0);
+  return out;
+}
+function rankValue(f, r){ return f.wildDeuce && r === 0 ? 12 : r; }
+function isDead(f, r){ return f.oddOnly && (r % 2 === 0); } // чётные номиналы (2,4,6,8,10,Д) становятся мебелью
+function evalSet(cards, f){
+  const live = cards.filter(c => !isDead(f, c.r));
+  const use  = live.length ? live : cards;
+  const rv = use.map(c => rankValue(f, c.r));
+  const rc = {}; rv.forEach(v => rc[v] = (rc[v]||0) + 1);
+  const groups = Object.keys(rc).map(k=>({ r:+k, c:rc[k] })).sort((a,b)=> b.c-a.c || b.r-a.r);
+  const sc = {}; use.forEach(c => sc[c.s] = (sc[c.s]||0)+1);
+  const suitBest = Object.keys(sc).map(k=>({s:+k,c:sc[k]})).sort((a,b)=>b.c-a.c)[0];
+  const flush = use.length >= 4 && suitBest.c === use.length;
+  let straight = 0, sf = 0;
+  const distinct = [...new Set(rv)].sort((a,b)=>b-a);
+  if (distinct.length >= 5){
+    for (let i=0; i<=distinct.length-5; i++){
+      if (distinct[i]-distinct[i+4] === 4) { straight = distinct[i]; break; }
     }
-    await sleep(90);
+    if (!straight && distinct[0] === 12 && distinct.slice(-5).join() === '12,3,2,1,0') straight = 3;
+    if (straight){
+      const need = new Set(); for (let k=0;k<5;k++) need.add(straight-k);
+      const bySuit = {};
+      use.forEach(c=>{ const v=rankValue(f,c.r); if (need.has(v)) bySuit[c.s]=(bySuit[c.s]||0)+1; });
+      for (const s in bySuit) if (bySuit[s] >= 5) sf = straight;
+    }
   }
-  updatePlates();
+  const p = groups.map(g=>g.c).join('-');
+  let cat = 0, hi = groups.length ? groups[0].r : 0;
+  if (sf) cat = 8;
+  else if (p === '4-1' || p === '5') cat = 7;
+  else if (p === '3-2') cat = 6;
+  else if (flush) cat = 5;
+  else if (straight) cat = 4;
+  else if (p === '3-1-1') cat = 3;
+  else if (p === '2-2-1' || p === '2-2') cat = 2;
+  else if (groups[0].c === 2) cat = 1;
+  if (f.pairSupreme && (cat === 1 || cat === 2)) cat = 9;
+  if (f.demoteFlush && cat === 5) cat = 0;
+  const kick = [];
+  const seen = {};
+  groups.forEach(g => { for (let i=0;i<g.c;i++){ if (!seen[g.r]) { seen[g.r]=1; } kick.push(g.r); } });
+  const suitSum = use.reduce((a,c)=>a + (c.s+1)*1000 + c.r, 0);
+  let name = CATN[Math.min(cat, 9)];
+  return { cat:cat, kick:kick, suit:suitBest ? suitBest.c : 0, suitSum:suitSum, name:name, cards:use };
 }
-
-/* ============================================================
-   8. ОЦЕНКА РУК (С УЧЁТОМ БЕЗУМИЯ)
-============================================================ */
-function buildCtx(){
-  const ctx={wildSuit:null,wildRanks:new Set(),noPairs:false,colorFlip:false,aceTwo:false,twoAce:false,
-    reversed:false,rainSuit:null,crown:new Set(),exclude:new Set()};
-  const r=G.rule;
-  if(r){
-    if(r.id==='spadesWild')ctx.wildSuit='♠';
-    if(r.id==='wildSuit')ctx.wildSuit=G.mods.wildSuit||'♣';
-    if(r.id==='noPairs')ctx.noPairs=true;
-    if(r.id==='colors')ctx.colorFlip=true;
-    if(r.id==='twoAce')ctx.wildRanks.add(2);
-    if(r.id==='aceTwo')ctx.aceTwo=true;
-    if(r.id==='reverse')ctx.reversed=true;
-  }
-  if(G.mods.forceReversed)ctx.reversed=true;
-  if(G.mods.rainSuit)ctx.rainSuit=G.mods.rainSuit;
-  if(G.mods.wildSuitExtra)ctx.wildSuit=G.mods.wildSuitExtra;
-  G.mods.crown.forEach(id=>ctx.crown.add(id));
-  G.mods.exclude.forEach(id=>ctx.exclude.add(id));
-  return ctx;
-}
-function effCard(c,ctx){
-  if(c.special==='joker')return{rank:14,suit:'♠',wild:true,id:c.id};
-  let rank=c.rank||1,suit=c.suit||'♠';
-  if(ctx.aceTwo&&rank===14)rank=2;
-  if(ctx.twoAce&&rank===2)rank=14;
-  if(ctx.colorFlip){const m={'♥':'♠','♦':'♣'};if(m[suit])suit=m[suit];}
-  if(ctx.rainSuit)suit=ctx.rainSuit;
-  const wild=(suit===ctx.wildSuit)||(ctx.wildRanks.has(rank));
-  return{rank,suit,wild,id:c.id};
-}
-function straightHigh(rs){
-  if(rs.length<5)return 0;
-  for(let i=0;i+4<rs.length;i++)if(rs[i]-rs[i+4]===4)return rs[i];
-  if([14,5,4,3,2].every(x=>rs.includes(x)))return 5;
+function cmpArr(a, b){
+  const n = Math.max(a.length, b.length);
+  for (let i=0;i<n;i++){ const x=a[i]||0, y=b[i]||0; if (x!==y) return x-y; }
   return 0;
 }
-function score5(cs){
-  if(!cs.length)return{cat:0,score:[0]};
-  const n=cs.length;
-  const ranks=cs.map(c=>c.rank).sort((a,b)=>b-a);
-  const suits=cs.map(c=>c.suit);
-  const flush=n===5&&suits.every(s=>s===suits[0]);
-  const uniq=[...new Set(ranks)];
-  const sh=straightHigh(uniq);
-  const straight=n===5&&sh>0;
-  const cnt={};ranks.forEach(r=>cnt[r]=(cnt[r]||0)+1);
-  const groups=Object.entries(cnt).map(([r,c])=>({r:+r,c})).sort((a,b)=>b.c-a.c||b.r-a.r);
-  let cat,tb;
-  if(flush&&straight){cat=9;tb=[sh];}
-  else if(groups[0].c===4){cat=8;tb=[groups[0].r,groups[1].r];}
-  else if(groups[0].c===3&&groups[1]&&groups[1].c>=2){cat=7;tb=[groups[0].r,groups[1].r];}
-  else if(flush){cat=6;tb=ranks;}
-  else if(straight){cat=5;tb=[sh];}
-  else if(groups[0].c===3){cat=4;tb=[groups[0].r,...groups.slice(1).map(g=>g.r)];}
-  else if(groups[0].c===2&&groups[1]&&groups[1].c===2){cat=3;tb=[groups[0].r,groups[1].r,groups[2]?groups[2].r:0];}
-  else if(groups[0].c===2){cat=2;tb=[groups[0].r,...groups.slice(1).map(g=>g.r)];}
-  else{cat=1;tb=ranks;}
-  return{cat,score:[cat,...tb]};
-}
-function combos(arr,k){
-  const res=[];const rec=(start,cur)=>{
-    if(cur.length===k){res.push(cur.slice());return;}
-    for(let i=start;i<arr.length;i++){cur.push(arr[i]);rec(i+1,cur);cur.pop();}
-  };rec(0,[]);return res;
-}
-function bestOf5(cards){
-  let best=null;
-  const subs=cards.length<=5?[cards]:combos(cards,5);
-  for(const s of subs){
-    const sc=score5(s);
-    if(!best||cmp(sc.score,best.score)>0)best=sc;
-  }
-  return best;
-}
-function cmp(a,b){
-  const n=Math.max(a.length,b.length);
-  for(let i=0;i<n;i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x-y;}
+function compareHands(x, y, f){
+  const key = c => f.invert ? [9 - c.cat, c.kick] : [c.cat, c.kick];
+  let d = cmpArr(key(x), key(y));
+  if (d !== 0) return d;
+  if (f.suitFirst){ d = cmpArr([x.suitSum], [y.suitSum]); if (d !== 0) return d; }
   return 0;
 }
-function evalWithWilds(eff){
-  const wilds=eff.filter(e=>e.wild),base=eff.filter(e=>!e.wild);
-  if(!wilds.length)return bestOf5(base);
-  let best=null;
-  const opts=[];for(const s of SUITS)for(let r=2;r<=14;r++)opts.push({rank:r,suit:s});
-  const rec=(i,arr)=>{
-    if(i===wilds.length){const sc=bestOf5(arr);if(!best||cmp(sc.score,best.score)>0)best=sc;return;}
-    for(const o of opts)rec(i+1,arr.concat(o));
-  };
-  rec(0,base);
+const _boc = {};
+function bestOf(cards, f){
+  const key = cards.map(c => c.uid + ':' + c.r + ':' + c.s).join('|') + '#' +
+              Object.keys(f).filter(k => f[k]).join(',');
+  if (_boc[key]) return _boc[key];
+  if (!cards.length) return { cat:-1, kick:[], suit:0, suitSum:0, name:'Пустота', cards:[] };
+  let best = null;
+  const sets = cards.length > 5 ? combos(cards, 5) : [cards];
+  for (const s of sets){
+    const e = evalSet(s, f);
+    if (!best) best = e;
+    else {
+      const a = f.invert ? [9-e.cat, e.kick] : [e.cat, e.kick];
+      const b = f.invert ? [9-best.cat, best.kick] : [best.cat, best.kick];
+      if (cmpArr(a,b) > 0) best = e;
+    }
+  }
+  if (Object.keys(_boc).length > 500) for (const k in _boc) delete _boc[k];
+  _boc[key] = best;
   return best;
 }
-function evalPlayer(p,ctx){
-  const cards=p.hand.filter(c=>!c.gone&&!ctx.exclude.has(c.id)&&(!c.special||c.special==='joker'));
-  if(!cards.length)return{score:[0],cat:0,name:CAT_NAMES[0],hasPair:false};
-  const eff=cards.map(c=>effCard(c,ctx));
-  if(ctx.crown.has(p.id))eff.forEach(e=>{if(!e.wild)e.rank=Math.min(15,e.rank+1);});
-  const res=evalWithWilds(eff);
-  let cat=res.cat;
-  if(ctx.noPairs){
-    if(cat===2||cat===3)res.score=[1,...res.score.slice(2)],cat=1;
-    if(cat===7||cat===8)cat=4,res.score[0]=4;
-  }
-  const cnt={};eff.forEach(e=>{if(!e.wild)cnt[e.rank]=(cnt[e.rank]||0)+1;});
-  const hasPair=Object.values(cnt).some(v=>v>=2);
-  return{score:res.score,cat,name:CAT_NAMES[cat],hasPair};
-}
-function normStrength(ev){
-  const base={0:.02,1:.14,2:.32,3:.45,4:.58,5:.7,6:.78,7:.86,8:.94,9:1}[ev.cat]||.1;
-  return clamp(base+(ev.score[1]||0)/200,0,1);
-}
-
-/* ============================================================
-   9. РУЛЕТКА ПРАВИЛ
-============================================================ */
-async function spinRule(){
-  const ep=G.epoch;
-  dealerSay('Дилер запускает руку в шляпу… Оттуда доносится кудахтанье.');
-  $('#hatBox').classList.add('rattle');
-  for(let i=0;i<12;i++){SND.tick();await sleep(110);if(ep!==G.epoch)return;}
-  $('#hatBox').classList.remove('rattle');
-  let rule=pick(RULES);
-  if(rule.id==='secret')rule.secret=pick(SECRETS);
-  // дилер может ошибиться — это часть шоу
-  if(Math.random()<.16&&rule.id!=='secret'){
-    $('#ruleName').textContent=`${rule.e} ${rule.n}`;$('#ruleDesc').textContent=rule.d;
-    stampShow(rule.e+' '+rule.n);SND.jingle();
-    await sleep(1100);if(ep!==G.epoch)return;
-    dealerSay('ТАК… СЕКУНДУ. ЭТО НЕ ТО ПРАВИЛО. У МЕНЯ ТАКОЕ БЫЛО В 1987-М.');
-    SND.whoosh();await sleep(900);if(ep!==G.epoch)return;
-    let r2=pick(RULES.filter(r=>r.id!==rule.id));
-    if(r2.id==='secret')r2.secret=pick(SECRETS);
-    rule=r2;
-    toast('🎩 Дилер перепутал бумажки!');
-  }
-  G.rule=rule;
-  if(rule.id==='secret'){
-    $('#ruleName').textContent='🤫 СЕКРЕТНОЕ ПРАВИЛО';
-    $('#ruleDesc').textContent='Узнаете на вскрытии. Дилер хитро щурится.';
-    stampShow('🤫 СЕКРЕТ…');
-  }else{
-    $('#ruleName').textContent=`${rule.e} ${rule.n}`;
-    $('#ruleDesc').textContent=rule.d;
-    stampShow(rule.e+' '+rule.n);
-  }
-  SND.jingle();flash();
-  await sleep(1400);
-}
-
-/* ============================================================
-   10. СПЕЦЭФФЕКТЫ КАРТ
-============================================================ */
-function visibleSpecials(exceptId){
-  const list=[];
-  for(const p of G.players)for(const c of p.hand)if(c.special&&c.id!==exceptId&&!c.gone)list.push(c);
-  for(const c of G.tableCards)if(c.special&&c.id!==exceptId)list.push(c);
-  return list;
-}
-async function fireSpecial(card,owner,source){
-  const ep=G.epoch;
-  let times=1;
-  if(G.mods.doubleNext&&card.special!=='clover'){times=2;G.mods.doubleNext=false;toast('🍀 ЭФФЕКТ ×2!!');}
-  for(let t=0;t<times;t++){
-    if(ep!==G.epoch)return;
-    await fireOnce(card,owner,source);
-    await sleep(350);
-  }
-}
-async function fireOnce(card,owner,source){
-  const spec=SPECIALS[card.special];
-  const others=G.players.filter(p=>!p.absent&&p!==owner&&p.hand.some(c=>!c.gone));
-  const alive=G.players.filter(p=>!p.absent&&p.hand.some(c=>!c.gone));
-  const O=owner||pick(alive);
-  const say=()=>{if(!O.human&&Math.random()<.8)bubble(O,pick(LINES[O.id].effect));};
-  toast(`${spec.e} ${spec.n.toUpperCase()}! ${spec.d}`);
-  switch(card.special){
-    case 'joker':
-      dealerSay('🃏 Джокер подмигивает и становится тем, кем выгодно.');
-      break;
-    case 'rooster':{
-      runRooster();SND.cluck();await sleep(650);
-      const hand=O.hand.filter(c=>!c.gone&&!c.special);
-      if(hand.length){const v=pick(hand);v.gone=true;renderHand(O);dealerSay(`🐔 Петух съел ${rName(v.rank)}${v.suit} у игрока ${O.name}!`);G.highlights.push('🐔 Петух сожрал карту у '+O.name);}
-      say();break;}
-    case 'bomb':{
-      const suit=pick(SUITS);SND.boom();shake();flash();
-      for(const p of G.players)for(const c of p.hand)if(c.suit===suit&&!c.special)c.gone=true;
-      renderAll();
-      dealerSay(`💣 БАБАХ! Все масти ${suit} уничтожены. Эвакуация не предусмотрена.`);
-      G.highlights.push(`💣 Бомба стёрла масть ${suit}`);
-      for(const p of G.players)if(!p.human&&Math.random()<.6)bubble(p,pick(LINES[p.id].effect));
-      break;}
-    case 'portal':{
-      const hand=O.hand.filter(c=>!c.gone&&!c.special);
-      if(hand.length){const m={'♠':'♥','♥':'♠','♦':'♣','♣':'♦'};const v=pick(hand);v.suit=m[v.suit];renderHand(O);
-        dealerSay(`🌀 Портал вывернул ${rName(v.rank)} наизнанку. Теперь это ${v.suit}.`);}
-      break;}
-    case 'banana':{
-      const hand=O.hand.filter(c=>!c.gone&&!c.special);
-      if(hand.length){hand.sort((a,b)=>a.rank-b.rank);hand[0].gone=true;renderHand(O);SND.whoosh();
-        dealerSay(`🍌 ${O.name} поскользнулся и выронил ${rName(hand[0].rank)}${hand[0].suit}.`);}
-      break;}
-    case 'reverse':
-      G.mods.forceReversed=true;SND.jingle();
-      dealerSay('🔄 РЕВЕРС! Теперь побеждает ХУДШАЯ рука. Мир перевернулся.');
-      stampShow('🔄 НАОБОРОТ!');break;
-    case 'hat':{
-      const hand=O.hand.filter(c=>!c.gone&&!c.special);
-      if(hand.length){hand.sort((a,b)=>b.rank-a.rank);G.mods.exclude.add(hand[0].id);
-        dealerSay(`🎩 Шляпа накрыла ${rName(hand[0].rank)} игрока ${O.name}. Карты как бы нет.`);}
-      break;}
-    case 'clover':
-      G.mods.doubleNext=true;flash();
-      dealerSay('🍀 Клевер шепчет: следующий эффект будет ДВОЙНЫМ.');break;
-    case 'eye':{
-      O.absurd+=1;
-      for(const p of G.players)if(!p.human&&!p.absent){
-        const ev=evalPlayer(p,buildCtx());
-        bubble(p,`Моя рука на ${Math.round(normStrength(ev)*10)} из 10 🤫`,3000);
-        await sleep(700);
-      }
-      dealerSay('👁️ Глаз увидел всё. И всем стало неловко.');break;}
-    case 'hole':
-      O.chips+=25;SND.ding();floatText(O,'+25 💰');
-      dealerSay(`🕳️ В дыре нашлось 25 фишек. ${O.name} забирает. Не спрашивайте, чьи они были.`);break;
-    case 'octopus':{
-      const other=visibleSpecials(card.id).filter(c=>c.special!=='octopus');
-      if(other.length){const oc=pick(other);dealerSay(`🐙 Осьминог копирует «${SPECIALS[oc.special].n}»! Зачем? Не ясно.`);
-        await fireOnce(oc,O,source);}
-      else{dealerSay('🐙 Осьминог огляделся. Копировать нечего. Ему очень стыдно.');O.absurd+=1;}
-      break;}
-    case 'magnet':{
-      const foe=others.sort((a,b)=>b.chips-a.chips)[0];
-      if(foe){const fh=foe.hand.filter(c=>!c.gone);const mine=O.hand.filter(c=>!c.gone&&!c.special);
-        if(fh.length){const stolen=pick(fh);foe.hand=foe.hand.filter(c=>c!==stolen);O.hand.push(stolen);
-          if(mine.length){const give=mine.sort((a,b)=>a.rank-b.rank)[0];O.hand=O.hand.filter(c=>c!==give);foe.hand.push(give);}
-          renderAll();SND.whoosh();
-          dealerSay(`🧲 Магнит вырвал карту из рук ${foe.name} и отдал ${O.name}. Обмен неравноценный, зато весёлый.`);
-          if(!foe.human)bubble(foe,'Эй! Верни!!');}}
-      break;}
-    case 'bone':{
-      const hand=O.hand.filter(c=>!c.gone&&!c.special);
-      if(hand.length){hand.sort((a,b)=>a.rank-b.rank);const idx=O.hand.indexOf(hand[0]);
-        O.hand[idx]=drawCard();renderHand(O);SND.flip();
-        dealerSay(`🦴 ${O.name} перебрасывает карту. Кость не врёт. Обычно.`);}
-      break;}
-    case 'rain':{
-      const s=pick(SUITS);G.mods.rainSuit=s;flash();
-      dealerSay(`🌧️ ЛИВЕНЬ! Все карты промокли и стали одной мастью: ${s}. Флеши — всем!`);break;}
-    case 'snail':{
-      const v=pick(G.players.filter(p=>!p.absent));v.snailBit=true;
-      dealerSay(`🐌 Улитка доползла до игрока ${v.name}. Следующий рейз будет… медленным.`);break;}
-    case 'clown':{
-      const a=pick(alive),b=pick(alive.filter(p=>p!==a))||a;
-      const ah=a.hand.filter(c=>!c.gone),bh=b.hand.filter(c=>!c.gone);
-      if(ah.length&&bh.length&&a!==b){
-        const ca=pick(ah),cb=pick(bh);
-        a.hand[a.hand.indexOf(ca)]=cb;b.hand[b.hand.indexOf(cb)]=ca;
-        renderAll();SND.jingle();flash();
-        dealerSay(`🤡 Клоун поменял карты ${a.name} и ${b.name}. Просто потому что может.`);
-        G.highlights.push(`🤡 Клоун перемешал руки ${a.name} и ${b.name}`);
-      }else dealerSay('🤡 Клоун хотел поменять карты, но передумал. Случается.');
-      break;}
-    case 'duck':{
-      const v=pick(G.players.filter(p=>!p.absent));v.forcedRaise=true;SND.cluck();
-      dealerSay(`🦆 Утёнок посмотрел на игрока ${v.name}. Теперь тот ОБЯЗАН рейзить. Кря.`);break;}
-    case 'ice':{
-      const foe=pick(others);
-      if(foe){const fh=foe.hand.filter(c=>!c.gone);if(fh.length){const v=pick(fh);v.frozen=true;G.mods.exclude.add(v.id);
-        renderAll();dealerSay(`🧊 Лёд заморозил карту игрока ${foe.name}. Она больше не считается. Ей холодно.`);
-        if(!foe.human)bubble(foe,'Бррр…');}}
-      break;}
-    case 'fire':{
-      shake();SND.boom();
-      for(const p of G.players){const h=p.hand.filter(c=>!c.gone&&!c.special);
-        if(h.length){h.sort((a,b)=>a.rank-b.rank);h[0].gone=true;}}
-      renderAll();
-      dealerSay('🔥 Пожар! Самые слабые карты сгорели у всех. Техника безопасности? Не слышали.');
-      G.highlights.push('🔥 Огонь сжёг слабые карты у всех');break;}
-    case 'crown':
-      G.mods.crown.add(O.id);SND.jingle();floatText(O,'👑 +1');
-      dealerSay(`👑 ${O.name} коронован! Все карты стали на ранг выше. Да здравствует кто попало.`);break;
-  }
-  if(source==='hand'&&card.special!=='joker'){card.gone=true;renderHand(O);}
-  updatePlates();
-}
-
-/* ============================================================
-   11. ХАОС-СОБЫТИЯ
-============================================================ */
-async function chaosFlip(count,label){
-  const ep=G.epoch;
-  SND.drum();
-  for(let i=0;i<count;i++){
-    if(ep!==G.epoch)return;
-    const c=drawCard();G.tableCards.push(c);
-    $('#chaosRow').insertAdjacentHTML('beforeend',cardHTML(c,true,false));
-    const el=$('#chaosRow').lastElementChild;el.classList.add('dealt');
-    SND.flip();await sleep(500);
-    if(c.special)await fireSpecial(c,null,'table');
-    else if(Math.random()<.3)dealerSay(pick(DEALER_SAYS));
-    await sleep(250);
-  }
-}
-async function midBetEvents(){
-  const ep=G.epoch;
-  if(G.rule&&G.rule.id==='emoji'||Math.random()<.13){
-    toast('😵 ЭМОДЗИ-УЖАС! Карты забыли, кто они!');SND.whoosh();
-    document.querySelectorAll('.card .face').forEach(f=>{f.dataset.orig=f.innerHTML;f.innerHTML=`<div class="mid">${pick(Object.values(EMOJI_RANK))}</div>`;});
-    await sleep(2200);if(ep!==G.epoch)return;
-    document.querySelectorAll('.card .face').forEach(f=>{if(f.dataset.orig){f.innerHTML=f.dataset.orig;delete f.dataset.orig;}});
-  }
-  if(Math.random()<.14){
-    const bots=G.players.filter(p=>!p.human&&!p.absent&&!p.folded&&p.hand.some(c=>!c.gone));
-    if(bots.length){
-      const b=pick(bots);SND.shout('ЧИТЕР!');stampShow('🚨 ЧИТЕР!');shake();
-      b.chips=Math.max(0,b.chips-15);G.pot+=15;setEmo(b,'sad');
-      bubble(b,'Это была стратегия!!');
-      dealerSay(`Дилер заметил, как ${b.name} прячет карту в ${b.id===4?'авоську':'карман'}. Штраф 15 фишек!`);
-      updatePlates();await sleep(1200);
-    }
-  }
-  if(Math.random()<.12){
-    const cand=G.players.filter(p=>!p.absent&&!p.folded&&p.hand.some(c=>!c.gone&&!c.special));
-    if(cand.length){
-      const p=pick(cand);const c=pick(p.hand.filter(x=>!x.gone&&!x.special));
-      const el=document.querySelector(`#fan${p.id} .card[data-id="${c.id}"]`);
-      if(el){el.classList.add('escaping');SND.whoosh();
-        toast(`Карта ${rName(c.rank)}${c.suit} заскучала и УБЕЖАЛА. Дилер выдал замену.`);
-        await sleep(900);if(ep!==G.epoch)return;
-        c.gone=true;p.hand.push(drawCard());renderHand(p,true);}
-    }
-  }
-}
-
-/* ============================================================
-   12. СТАВКИ: БОТЫ И ИГРОК
-============================================================ */
-const activePlayers=()=>G.players.filter(p=>!p.folded&&!p.allin&&!p.absent);
-function botDecide(p,need){
-  const ctx=buildCtx();
-  const ev=evalPlayer(p,ctx);
-  let s=normStrength(ev);
-  if(ctx.reversed&&p.id!==1)s=1-s; // Боря никогда не понимает НАОБОРОТ
-  s+=p.mood*.04+rnd(-.06,.06);
-  let act;
-  switch(p.id){
-    case 1: // Боря: самоуверенный до предела
-      if(ev.hasPair&&Math.random()<.55){act='allin';break;}
-      if(need===0)act=Math.random()<.55?'raise':'call';
-      else act=Math.random()<.82?(need>=p.chips?'allin':'call'):'fold';
-      break;
-    case 2: // Люся: фолдит всё, кроме флешей
-      if(ev.cat>=6||s>.78)act=need===0&&Math.random()<.4?'raise':'call';
-      else if(need===0)act='call';
-      else act=Math.random()<.85?'fold':'call';
-      break;
-    case 3: // Гоша: редко, но метко
-      if(s<.42)act=need>0?'fold':'call';
-      else if(s>.8)act=Math.random()<.1?'allin':'raise';
-      else act='call';
-      break;
-    case 4: // Тётя Зина: чистый хаос
-      {const r=Math.random();act=r<.2?'allin':r<.5?'raise':r<.82?'call':'fold';}
-      break;
-  }
-  if(p.forcedRaise&&act==='fold')act='raise';
-  if(p.forcedRaise&&(act==='call'))act='raise';
-  if(need>=p.chips&&act==='call')act=Math.random()<.6?'allin':'fold';
-  if(act==='raise'&&G.raises>=MAX_RAISES)act=need>0?'call':'call';
-  if(act==='raise'&&p.chips<=need+RAISE)act='allin';
-  if(p.snailBit&&act==='raise'){p.snailBit=false;toast(`🐌 Улитка замедлила рейз игрока ${p.name}`);act='call';}
-  return act;
-}
-async function applyAction(p,act,need){
-  const payAmt=a=>{a=Math.min(a,p.chips);p.chips-=a;p.contrib+=a;G.pot+=a;if(p.chips===0)p.allin=true;SND.ding();floatText(p,'-'+a+' 💰');};
-  if(act==='fold'){
-    p.folded=true;p.stats.folds++;setEmo(p,'sad');
-    if(!p.human)bubble(p,pick(LINES[p.id].fold));
-    renderHand(p);
-  }else if(act==='call'){
-    if(need>0){payAmt(need);if(!p.human&&Math.random()<.5)bubble(p,pick(LINES[p.id].bet));}
-    else if(!p.human&&Math.random()<.35)bubble(p,pick(LINES[p.id].bet));
-  }else if(act==='raise'){
-    p.forcedRaise=false;
-    payAmt(need+RAISE);G.currentBet+=RAISE;G.raises++;
-    for(const q of G.players)if(q!==p&&!q.folded&&!q.allin)q.acted=false;
-    if(!p.human)bubble(p,pick(LINES[p.id].bet));
-    toast(`🔥 ${p.name} поднимает до ${G.currentBet}!`);
-  }else if(act==='allin'){
-    const was=p.chips;p.forcedRaise=false;payAmt(Math.max(need,p.chips));
-    p.allin=true;p.stats.allins++;
-    if(p.contrib>G.currentBet){G.currentBet=p.contrib;for(const q of G.players)if(q!==p&&!q.folded)q.acted=false;}
-    SND.whoosh();stampShow('🚀 ALL-IN: '+p.name.toUpperCase());
-    if(!p.human)bubble(p,pick(LINES[p.id].allin));
-    setEmo(p,'angry');
-    if(p.human)G.highlights.push('🚀 Вы пошли ва-банк. Зачем? Не ясно.');
-  }
-  p.acted=true;updatePlates();
-}
-function cluckGate(){
-  return new Promise(res=>{
-    const b=$('#bCluck');b.style.display='inline-block';b.classList.add('big');
-    let done=false;
-    const fin=auto=>{if(done)return;done=true;b.style.display='none';b.classList.remove('big');
-      SND.cluck();const me=pl(0);bubble(me,me.curses.includes('mute')?'🐔🐔🐔':'КУДАХ-КУДАХ! 🐔');
-      if(auto)toast('🐔 Курица кудахнула за вас. Считаем за ставку.');
-      res();};
-    b.onclick=()=>fin(false);
-    setTimeout(()=>fin(true),6000);
-  });
-}
-async function snailDelay(){
-  for(let i=5;i>0;i--){$('#turnInfo').textContent=`🐌 Кнопки прогреваются… ${i}`;await sleep(1000);}
-}
-function playerActionUI(need){
-  return new Promise(res=>{
-    const me=pl(0);
-    if(me.curses.includes('duck'))$('#bFold').disabled=true;else $('#bFold').disabled=false;
-    const call=$('#bCall');
-    if(need<=0)call.innerHTML='ЧЕК <small>✋ бесплатно</small>';
-    else call.innerHTML=`КОЛЛ ${Math.min(need,me.chips)} <small>💰 уравнять</small>`;
-    const canRaise=G.raises<MAX_RAISES&&me.chips>need+RAISE;
-    $('#bRaise').disabled=!canRaise;
-    $('#bAllin').innerHTML=`ALL-IN ${me.chips} <small>🚀 всё!</small>`;
-    $('#bAllin').disabled=me.chips<=0;
-    G.playerResolve=res;
-    // таймер
-    const tb=$('#timerBar');tb.classList.add('on');
-    let t=25;const bar=tb.firstElementChild;bar.style.width='100%';
-    clearInterval(G._timer);
-    G._timer=setInterval(()=>{
-      t--;bar.style.width=(t/25*100)+'%';
-      if(t<=0){clearInterval(G._timer);tb.classList.remove('on');
-        toast('⏰ Вы думали слишком долго. Рука решила сама.');
-        doResolve(need>0&&need<=me.chips?'call':'fold');}
-    },1000);
-    function doResolve(a){
-      if(!G.playerResolve)return;const r=G.playerResolve;G.playerResolve=null;
-      clearInterval(G._timer);tb.classList.remove('on');
-      if(a==='fold'&&me.curses.includes('duck')){toast('🦆 Утёнок решил за вас: ВА-БАНК!');a='allin';}
-      if(me.curses.includes('mute'))bubble(me,pick(['🤐','🙊','😶','🫥']));
-      r(a);
-    }
-    $('#bFold').onclick=()=>doResolve('fold');
-    call.onclick=()=>doResolve('call');
-    $('#bRaise').onclick=()=>doResolve('raise');
-    $('#bAllin').onclick=()=>doResolve('allin');
-  });
-}
-async function doTurn(p,need){
-  const ep=G.epoch;
-  setTurn(p,true);
-  $('#turnInfo').textContent=p.human?'ВАШ ХОД! 🫵':`Ходит ${p.name}…`;
-  if(p.human){
-    if(p.curses.includes('chicken'))await cluckGate();
-    if(p.curses.includes('snail'))await snailDelay();
-    if(ep!==G.epoch)return;
-    const act=await playerActionUI(need);
-    if(ep!==G.epoch)return;
-    await applyAction(p,act,need);
-  }else{
-    await sleep(rnd(600,1100));if(ep!==G.epoch)return;
-    const act=botDecide(p,need);
-    await applyAction(p,act,need);
-  }
-  setTurn(p,false);
-  updatePlates();
-}
-async function bettingPhase(){
-  const ep=G.epoch;
-  G.phase='bet';G.currentBet=BLIND;G.raises=0;
-  for(const p of G.players){p.contrib=0;p.acted=false;}
-  const start=ri(5);
-  // подозрение к победителю
-  if(G.playerWinStreak>=2){
-    const b=pick(G.players.filter(x=>!x.human&&!x.absent));
-    if(b){setEmo(b,'suspect');bubble(b,pick(LINES[b.id].suspect),3000);}
-  }
-  dealerSay(`Ставки открыты. Вход ${BLIND} фишек. Совесть не принимается.`);
-  let eventsDone=false;
-  for(let pass=0;pass<8;pass++){
-    let any=false;
-    for(let k=0;k<5;k++){
-      if(ep!==G.epoch)return;
-      const i=(start+k)%5,p=G.players[i];
-      if(p.absent||p.folded||p.allin)continue;
-      const need=G.currentBet-p.contrib;
-      if(need===0&&p.acted)continue;
-      any=true;
-      await doTurn(p,need);
-      if(G.roundEnded)return;
-      if(stayers().length<=1){await muckWin();return;}
-    }
-    if(pass===0&&!eventsDone){eventsDone=true;await midBetEvents();}
-    const done=G.players.every(p=>p.absent||p.folded||p.allin||(p.contrib===G.currentBet&&p.acted));
-    if(done||!any)break;
-  }
-  $('#turnInfo').textContent='';
-  renderAll();
-}
-async function muckWin(){
-  const w=stayers()[0];
-  w.chips+=G.pot;w.stats.wins++;w.mood=clamp(w.mood+1,-2,2);
-  if(w.human){G.playerWinStreak++;confetti();SND.applause();}else G.playerWinStreak=0;
-  stampShow(`🏳️ ВСЕ СДУЛИСЬ! БАНК У ${w.name}`);
-  if(!w.human)bubble(w,pick(LINES[w.id].win),3000);
-  dealerSay(`Все сбросили. ${w.name} забирает ${G.pot} без боя. Трусость победила.`);
-  updatePlates();
-  G.roundEnded=true;
-  await sleep(1600);
-}
-
-/* ============================================================
-   13. ВСКРЫТИЕ И НАГРАЖДЕНИЕ
-============================================================ */
-async function revealAll(){
-  G.phase='showdown';renderAll();
-  SND.drum();
-  for(const p of stayers()){setEmo(p,'neutral');await sleep(120);}
-  await sleep(600);
-}
-async function fireHandSpecials(){
-  for(const p of G.players){
-    if(p.absent||p.folded)continue;
-    const specs=p.hand.filter(c=>c.special&&!c.gone);
-    for(const c of specs){
-      if(p.human||Math.random()<.9)bubble(p,SPECIALS[c.special].e+'!',1200);
-      await fireSpecial(c,p,'hand');
-      await sleep(300);
-    }
-  }
-}
-async function maybeOldDealer(){
-  if(G.rule.id!=='oldDealer'&&G.rule.id!=='secret')return;
-  if(G.rule.id==='oldDealer'&&Math.random()<.65){
-    const r2=pick(RULES.filter(r=>r.id!=='oldDealer'&&r.id!=='secret'));
-    dealerSay('👴 ТАК… КАЖЕТСЯ, Я ПЕРЕПУТАЛ РАУНДЫ. ПРАВИЛО БЫЛО ДРУГОЕ!');
-    G.rule=r2;
-    $('#ruleName').textContent=`${r2.e} ${r2.n}`;$('#ruleDesc').textContent=r2.d;
-    stampShow('👴 ОЙ. '+r2.n);shake();SND.whoosh();
-    await sleep(1400);
-  }
-}
-async function showdown(){
-  const ep=G.epoch;
-  await revealAll();if(ep!==G.epoch)return;
-  await fireHandSpecials();if(ep!==G.epoch)return;
-  await maybeOldDealer();if(ep!==G.epoch)return;
-  const st=stayers();
-  let winner,results;
-  if(G.rule.id==='secret'){
-    const sec=G.rule.secret;
-    stampShow('🤫 СЕКРЕТ ВСКРЫТ!');flash();await sleep(900);
-    toast(sec.say,3500);dealerSay('🤫 Секретное правило: '+sec.say);
-    results=st.map(p=>({p,score:sec.fn(p),name:'Секретная логика 🤫'}));
-    results.sort((a,b)=>cmp(b.score,a.score));
-    winner=results[0].p;
-  }else{
-    const ctx=buildCtx();
-    results=st.map(p=>{const ev=evalPlayer(p,ctx);return{p,score:ev.score,name:ev.name,cat:ev.cat};});
-    results.sort((a,b)=>ctx.reversed?cmp(a.score,b.score):cmp(b.score,a.score));
-    winner=results[0].p;
-  }
-  if(ep!==G.epoch)return;
-  // объявление результатов
-  for(const r of results){
-    bubble(r.p,r.name,2600);await sleep(350);
-    if(r.p.human)setEmo(r.p,'neutral');
-  }
-  await sleep(500);
-  // победа
-  let prize=G.pot;
-  if(G.mods.doublePot){prize*=2;toast('💰 Фишки материализовались из воздуха. Банк ×2!');}
-  if(winner.curses.includes('clown')){
-    const half=Math.floor(prize/2);prize-=half;
-    toast(`🎪 Проклятие клоуна: половина выигрыша (${half}) ушла в фонд цирка.`);
-  }
-  winner.chips+=prize;winner.stats.wins++;winner.mood=clamp(winner.mood+1,-2,2);
-  const hadChaos=G.tableCards.some(c=>c.special)||G.players.some(p=>p.hand.some(c=>c.special));
-  if(winner.human){
-    G.playerWinStreak++;
-    let ab=2;if(winner.stats.allins>0&&winner.allin)ab+=3;
-    if(G.rule.id==='reverse'||G.mods.forceReversed)ab+=3;
-    if(hadChaos)ab+=2;winner.absurd+=ab;
-    winner.curses=[];toast('✨ Проклятия сняты победой!');
-    confetti();SND.applause();flash();
-    stampShow(`🏆 ВЫ ЗАБИРАЕТЕ ${prize}!`);
-    G.highlights.push(`🏆 Вы забрали банк ${prize} (${results[0].name})`);
-    if(Math.random()<.2){winner.absurd+=3;toast('🐔👑 ПОЧЁТНЫЙ ПЕТУХ! +3🤪');G.highlights.push('🐔 Вы получили Почётного Петуха');}
-  }else{
-    G.playerWinStreak=0;winner.absurd+=2;
-    winner.curses=[];
-    setEmo(winner,'happy');bubble(winner,pick(LINES[winner.id].win),3000);
-    stampShow(`🏆 ${winner.name} ЗАБИРАЕТ ${prize}`);
-    SND.jingle();
-    if(hadChaos)winner.stats.chaosWins++;
-  }
-  // жалость дилера
-  if(G.rule.id==='mercy'&&results.length>1){
-    const last=results[results.length-1].p;last.chips+=20;
-    toast(`🥺 Дилеру жалко ${last.name}: +20 из личного кармана.`);
-  }
-  // проклятие проигравшему
-  if(results.length>1){
-    const loser=results[results.length-1].p;
-    if(!loser.human){setEmo(loser,'sad');bubble(loser,pick(LINES[loser.id].lose),3000);loser.mood=clamp(loser.mood-1,-2,2);}
-    const curse=pick(Object.keys(CURSES));
-    loser.curses=[curse];loser.stats.cursesTaken++;
-    const c=CURSES[curse];
-    if(loser.human){
-      flash(true);shake();SND.sad();if(curse==='chicken')SND.cluck();
-      stampShow('ПРОКЛЯТИЕ: '+c.e+' '+c.n.toUpperCase());
-      toast(`💀 ${c.d}`,3200);
-      G.highlights.push(`💀 Вы получили проклятие «${c.n}»`);
-    }else{
-      toast(`${c.e} ${loser.name} получает проклятие «${c.n}»`);
-    }
-  }
-  // дерзость: абсурд за смелость
-  for(const p of G.players)if(p.allin&&!p.human&&Math.random()<.5)bubble(p,'Это была ГЕНИАЛЬНОСТЬ.',2500);
-  updatePlates();
-  G.roundEnded=true;
-  await sleep(1800);
-}
-
-/* ============================================================
-   14. СЦЕНЫ МЕЖДУ РАУНДАМИ
-============================================================ */
-async function interlude(){
-  const ep=G.epoch;
-  // пицца
-  if(Math.random()<.2){
-    const b=pick(G.players.filter(p=>!p.human&&!p.absent));
-    if(b){
-      b.absent=true;b.absurd+=1;
-      bubble(b,'Я за пиццей! 🍕 Без меня НЕ начинайте!',3000);
-      setEmo(b,'eat');SND.crunch();
-      toast(`🍕 ${b.name} ушёл за пиццей и пропустит раунд`);
-      updatePlates();await sleep(1600);if(ep!==G.epoch)return;
-    }
-  }else{
-    const back=G.players.filter(p=>p.absent);
-    for(const b of back){
-      b.absent=false;b.chips+=15;b.absurd+=1;
-      bubble(b,'Я вернулся! Пицца остыла, зато +15 фишек!',3000);
-      setEmo(b,'happy');SND.crunch();
-      G.highlights.push(`🍕 ${b.name} вернулся с пиццей`);
-      updatePlates();await sleep(1200);
-    }
-  }
-  if(Math.random()<.45){
-    const sc=pick(SCENES);
-    $('#sceneTitle').textContent=sc.t;
-    $('#sceneBody').innerHTML='';
-    $('#ovScene').classList.remove('hidden');
-    for(const[id,line]of sc.l){
-      const b=G.players[id];
-      $('#sceneBody').insertAdjacentHTML('beforeend',`<div class="sceneLine"><b>${b.name}:</b> ${line}</div>`);
-      bubble(b,line,2600);SND.flip();
-      await sleep(1500);if(ep!==G.epoch)return;
-    }
-    await sleep(900);
-    $('#ovScene').classList.add('hidden');
-  }
-  // банкротам — кредит
-  for(const p of G.players){
-    if(p.chips<BLIND){
-      p.chips+=30;
-      if(p.human)toast('🏦 Дом дал вам кредит 30 фишек. Процент — ваш стыд.');
-      else toast(`🏦 Тётя Зина одолжила ${p.name} 30 фишек под честное слово.`);
-      updatePlates();
-    }
-  }
-}
-
-/* ============================================================
-   15. РАУНД И ПАРТИЯ
-============================================================ */
-async function startRound(){
-  const ep=G.epoch;
-  G.roundEnded=false;G.tableCards=[];$('#chaosRow').innerHTML='';
-  G.mods={wildSuit:pick(SUITS),rainSuit:null,forceReversed:false,crown:new Set(),exclude:new Set(),doubleNext:false,doublePot:false};
-  G.cheatUsedRound=false;
-  $('#roundTag').textContent=`РАУНД ${G.round}/${ROUNDS}`;
-  for(const p of G.players){p.folded=false;p.allin=false;p.contrib=0;p.acted=false;if(!p.human)setEmo(p,'neutral');}
-  dealerSay(pick(DEALER_SAYS));
-  await dealAll();if(ep!==G.epoch)return;
-  await spinRule();if(ep!==G.epoch)return;
-  // пост-эффекты правила
-  if(G.rule.id==='sixth'){
-    for(const p of G.players)if(!p.absent)p.hand.push(drawCard());
-    renderAll(true);toast('6️⃣ Всем по шестой! Жадность дилера не знает границ.');
-    await sleep(700);
-  }
-  if(G.rule.id==='passHands'){
-    const act = G.players.filter(p=>!p.absent);
-    const hands=act.map(p=>p.hand);
-    act.forEach((p,i)=>{p.hand=hands[(i+hands.length-1)%hands.length];});
-    renderAll(true);SND.whoosh();
-    toast('🔀 Карты переехали к соседям. Никто не доволен.');
-    G.highlights.push('🔀 Все поменялись руками');
-    await sleep(800);
-  }
-  if(G.rule.id==='doublePot'){G.mods.doublePot=true;toast('💰 ДВОЙНОЙ БАНК! Дом платит за банкет.');}
-  if(G.rule.id==='allSee'){
-    renderAll();toast('👀 Все карты раскрыты. Ставьте честно. Ха-ха.');
-    await sleep(800);
-  }
-  if(G.rule.id==='future'){
-    const peek=G.deck[G.deck.length-1];
-    if(peek){const sp=peek.special?SPECIALS[peek.special]:null;
-      toast(`🔮 Вы видите будущее: на стол упадёт ${sp?sp.e+' '+sp.n:rName(peek.rank)+peek.suit}!`,3500);
-      G.players[0].absurd+=1;}
-  }
-  updatePlates();
-  await bettingPhase();if(ep!==G.epoch)return;
-  if(G.roundEnded)return;
-  await chaosFlip(2,'флоп');if(ep!==G.epoch)return;
-  await chaosFlip(1,'тёрн');if(ep!==G.epoch)return;
-  await chaosFlip(1,'ривер');if(ep!==G.epoch)return;
-  if(G.rule.id==='emoji')await midBetEvents();
-  await showdown();if(ep!==G.epoch)return;
-}
-async function matchLoop(){
-  const ep=G.epoch;
-  for(G.round=1;G.round<=ROUNDS;G.round++){
-    if(ep!==G.epoch)return;
-    await startRound();
-    if(ep!==G.epoch)return;
-    if(G.round<ROUNDS)await interlude();
-    if(ep!==G.epoch)return;
-  }
-  await endMatch();
-}
-
-/* ============================================================
-   16. ФИНАЛ, ТИТУЛЫ, ШАРИНГ
-============================================================ */
-function computeTitles(){
-  const ps=[...G.players].sort((a,b)=>b.chips-a.chips);
-  const titles={};
-  const winner=ps[0];
-  titles[winner.id]=['🏆','ЧЕМПИОН БЕЗУМНОГО КАЗИНО'];
-  const most=(f)=>{let best=null;for(const p of G.players){const v=f(p);if(v>0&&(!best||v>f(best)))best=p;}return best;};
-  const al=most(p=>p.stats.allins);if(al&&al.stats.allins>=2)titles[al.id]=titles[al.id]||['🃏','МАНЬЯК ВА-БАНКА'];
-  const cu=most(p=>p.stats.cursesTaken);if(cu&&cu.stats.cursesTaken>=2)titles[cu.id]=titles[cu.id]||['🐔','КУРИНЫЙ КОРОЛЬ'];
-  const ab=most(p=>p.absurd);if(ab)titles[ab.id]=titles[ab.id]||['🌀','ХАОС-АГЕНТ'];
-  const fo=most(p=>p.stats.folds);if(fo&&fo.stats.folds>=3)titles[fo.id]=titles[fo.id]||['🫣','МАСТЕР ОТСТУПЛЕНИЯ'];
-  const ch=most(p=>p.stats.cheats);if(ch&&ch.stats.cheats>=2)titles[ch.id]=titles[ch.id]||['🍕','ПИЦЦЕЕД'];
-  if(winner.stats.cheats===0&&!titles[winner.id][1].includes('МАНЬЯК'))titles[winner.id]=['🎩','ЧЕСТНЫЙ ШЛЯПНИК'];
-  if(winner.stats.losses>=2)titles[winner.id]=['🤡','КЛОУН, КОТОРЫЙ ВЫИГРАЛ'];
-  for(const p of G.players)if(!titles[p.id])titles[p.id]=['🪑','СВИДЕТЕЛЬ ХАОСА'];
-  return{ps,titles};
-}
-async function endMatch(){
-  const ep=G.epoch;
-  const{ps,titles}=computeTitles();
-  const winner=ps[0];
-  $('#endHead').textContent=winner.human?'🎉 ВЫ ПОБЕДИЛИ В ЭТОМ ЦИРКЕ!':`🏆 ПОБЕДИЛ: ${winner.name} ${winner.emoji}`;
-  $('#endRows').innerHTML=ps.map((p,i)=>`
-    <div class="titleRow">
-      <span>${i===0?'👑 ':''}${p.human?'😎':' '} ${p.name}</span>
-      <span>💰 ${p.chips} &nbsp; <span class="tt">${titles[p.id][0]} ${titles[p.id][1]}</span></span>
-    </div>`).join('');
-  $('#endQuote').textContent='«'+pick([
-    'Это был не покер. Это был диагноз.',
-    'Петух снова не уволен.',
-    'Дилер просит никого не рассказывать бухгалтерии.',
-    'Страховка казино сгорела вместе с картами.',
-    'Тётя Зина требует реванш и пирожки.',
-  ])+'»';
-  $('#ovEnd').classList.remove('hidden');
-  if(winner.human){confetti();confetti();SND.applause();}else SND.sad();
-  // рекорды
-  const matches=LS.get('mp_matches',0)+1;LS.set('mp_matches',matches);
-  const best=LS.get('mp_best',0);
-  if(G.players[0].chips>best)LS.set('mp_best',G.players[0].chips);
-  G._titles=titles;
-}
-function shareText(){
-  const{titles}=G._titles?{titles:G._titles}:{titles:{}};
-  const me=G.players[0];
-  const hl=G.highlights.slice(-3).map(h=>'• '+h).join('\n')||'• Ничего не помню. Было страшно.';
-  const t=(titles[0]||['🪑','СВИДЕТЕЛЬ ХАОСА']).join(' ');
-  return `🎰 Я выжил в «БЕЗУМНОМ ПОКЕРЕ»!\n💰 Итог: ${me.chips} фишек, ${me.absurd}🤪 абсурда\n${t}\n\nХроники безумия:\n${hl}\n\nСловами это не описать. Открывай и смотри сам 🐔💣`;
-}
-
-/* ============================================================
-   17. КОНФЕТТИ
-============================================================ */
-const FX=$('#fx'),FCTX=FX.getContext('2d');let PARTS=[];
-function sizeFX(){FX.width=innerWidth;FX.height=innerHeight;}
-addEventListener('resize',sizeFX);sizeFX();
-function confetti(){
-  const cols=['#ffcf3f','#ff2e88','#2ee6d6','#fff6e5','#ff5340','#b46cff'];
-  for(let i=0;i<90;i++)PARTS.push({x:rnd(0,FX.width),y:rnd(-60,-10),vx:rnd(-2,2),vy:rnd(2,6),r:rnd(3,7),c:pick(cols),rot:rnd(0,6),vr:rnd(-.2,.2),life:rnd(80,160)});
-}
-(function fxLoop(){
-  FCTX.clearRect(0,0,FX.width,FX.height);
-  PARTS=PARTS.filter(p=>p.life>0&&p.y<FX.height+20);
-  for(const p of PARTS){
-    p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life--;
-    FCTX.save();FCTX.translate(p.x,p.y);FCTX.rotate(p.rot);
-    FCTX.fillStyle=p.c;FCTX.fillRect(-p.r,-p.r/2,p.r*2,p.r);FCTX.restore();
-  }
-  requestAnimationFrame(fxLoop);
-})();
-
-/* ============================================================
-   18. ЧИТЫ ИГРОКА
-============================================================ */
-function toggleCheatMenu(){
-  const m=$('#cheatMenu');m.classList.toggle('on');
-}
-async function doCheat(kind){
-  const me=pl(0);
-  if(me.pizza<=0){toast('🍕 Пицца кончилась. Читы — только за пиццу.');return;}
-  if(G.cheatUsedRound){toast('Уже читовали в этом раунде. Дилер следит.');return;}
-  if(G.phase!=='bet'||!$('#bCall').offsetParent){}
-  G.cheatUsedRound=true;me.pizza--;me.stats.cheats++;me.absurd+=1;
-  SND.crunch();$('#cheatMenu').classList.remove('on');
-  if(Math.random()<.4){const b=pick(G.players.filter(p=>!p.human&&!p.absent));if(b)bubble(b,'Я ВИДЕЛ!! 👀',2500);}
-  dealerSay('Дилер делает вид, что ничего не заметил. У него план по выручке.');
-  if(kind==='peek'){
-    const bots=G.players.filter(p=>!p.human&&!p.absent&&!p.folded&&p.hand.length);
-    if(!bots.length){toast('Подглядывать не за кем. Неловко.');return;}
-    const b=pick(bots);const c=pick(b.hand);
-    const sp=c.special?SPECIALS[c.special]:null;
-    toast(`👁️ Подсмотрено: у ${b.name} есть ${sp?sp.e+' '+sp.n:rName(c.rank)+c.suit}`,3500);
-  }else{
-    const h=me.hand.filter(c=>!c.gone&&!c.special);
-    if(!h.length){toast('Менять нечего. Даже грустно.');return;}
-    h.sort((a,b)=>a.rank-b.rank);
-    const idx=me.hand.indexOf(h[0]);
-    me.hand[idx]=drawCard();
-    renderHand(me,true);SND.flip();
-    toast('🔄 Подмена удалась. Дилер отвернулся очень вовремя.');
-  }
-  updatePlates();
-}
-
-/* ============================================================
-   19. ЗАПУСК
-============================================================ */
-function startMatch(){
-  newGame();
-  buildScene();
-  updatePlates();renderAll();
-  $('#ovStart').classList.add('hidden');
-  $('#ovEnd').classList.add('hidden');
-  $('#roundTag').textContent=`РАУНД 0/${ROUNDS}`;
-  $('#ruleName').textContent='🎰 ПОЕХАЛИ!';
-  $('#ruleDesc').textContent='шляпа уже тасует правила';
-  SND.jingle();
-  matchLoop();
-}
-$('#btnPlay').onclick=()=>{SND.ac();startMatch();};
-$('#btnAgain').onclick=()=>startMatch();
-$('#btnRestart').onclick=()=>{if(confirm('Сдать всё заново и забыть этот позор?'))startMatch();};
-$('#btnSound').onclick=()=>{SND.on=!SND.on;LS.set('mp_sound',SND.on);$('#btnSound').textContent=SND.on?'🔊':'🔇';if(SND.on)SND.ding();};
-$('#bCheat').onclick=toggleCheatMenu;
-$('#cPeek').onclick=()=>doCheat('peek');
-$('#cSwap').onclick=()=>doCheat('swap');
-$('#btnShare').onclick=async()=>{
-  const t=shareText();
-  try{await navigator.clipboard.writeText(t);toast('📋 Скопировано! Вставляйте в чат и смотрите на реакцию.',3000);}
-  catch(e){
-    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);
-    ta.select();try{document.execCommand('copy');toast('📋 Скопировано!');}catch(x){toast(t,4000);}ta.remove();
-  }
+/*__PART2__*/
+/* ---------- 6. СОСТОЯНИЕ СТОЛА ---------- */
+const G = {
+  scene:'title', t:0, hand:0, phase:'idle', handT:0, street:0,
+  deck:[], board:[], muck:[], grave:null, pot:0, ante:5, cur:0, minR:0,
+  ai:0, bet:[0,0,0], acted:[false,false,false], folded:[false,false,false], allin:[false,false,false],
+  players:[], laws:[], f:baseFlags(),
+  sanity:100, sel:-1, feedUsed:false, kissUsed:false, peeked:0, zoyaAce:false,
+  log:[], tel:null, telQ:[], bub:[], parts:[], eyeQ:0,
+  shake:0, glitch:0, flash:0, hue:0, wait:0, pass:0,
+  result:null, stats:{hands:0, wins:0, madness:0, bites:0},
+  order:[0,1,2], lastAggressor:-1, payTip:0, heart:0, swap:null,
+  showT:0, over:false, lawFlash:0, drift:0, hint:'', breath:0
 };
-$('#btnSound').textContent=SND.on?'🔊':'🔇';
-const recM=LS.get('mp_matches',0),recB=LS.get('mp_best',0);
-$('#recordLine').textContent=recM?`Вы уже играли ${recM} раз. Рекорд: ${recB} фишек. Дилер помнит.`:'Вы здесь впервые. Дилер уже потирает руки.';
 
-/* === ФИКС: глобальные кнопки ставок — не зависят от playerActionUI === */
-function submitBetAction(action){
-  if(!G||!G.playerResolve)return; // не наш ход — молча игнорируем
-  const me=G.players[0];
-  if(action==='fold'&&me.curses.includes('duck')){
-    toast('🦆 Утёнок решил за вас: ВА-БАНК!');action='allin';
-  }
-  const r=G.playerResolve;G.playerResolve=null;
-  if(G._timer)clearInterval(G._timer);
-  const tb=$('#timerBar');if(tb)tb.classList.remove('on');
-  if(me.curses.includes('mute'))bubble(me,pick(['🤐','🙊','😶','🫥']));
-  try{r(action);}catch(err){console.error('submitBetAction:',err);}
+function mkPlayers(){
+  G.players = [
+    { name:'ТЫ', you:true, chips:100, cards:[], seat:'you', v:'', talk:'', talkT:0,
+      blurb:'Новый пациент. Зубы ещё свои.' },
+    { name:'ЗОЯ ПАВЛОВНА', you:false, kind:'zoya', chips:100, cards:[], seat:'left', v:'а',
+      talk:'', talkT:0, age:84, phobia7:0, bluff:0.22, aggr:0.55,
+      blurb:'Вяжет накладки из чужих десён. Боится семёрок.' },
+    { name:'АНДРЮША-117', you:false, kind:'andry', chips:100, cards:[], seat:'right', v:'',
+      talk:'', talkT:0, age:'∞', freeze:0, bluff:0.38, aggr:0.8, peek:0,
+      blurb:'Касса самообслуживания, обретшая сознание. Фобия: слово «сдача».' }
+  ];
 }
-(function bindBetButtons(){
-  const map={bFold:'fold',bCall:'call',bRaise:'raise',bAllin:'allin'};
-  Object.keys(map).forEach(id=>{
-    const btn=document.getElementById(id);
-    if(!btn)return;
-    btn.onclick=function(){submitBetAction(map[id]);};
+
+/* ---------- 7. РАСКЛАДКА (используют и логика, и рендер) ---------- */
+let L = null;
+function layout(){
+  const cx = W/2;
+  const CW = clamp(W*0.082, 42, 84), CH = CW*1.44;
+  const defs = actionButtons();
+  const perRow = W < 780 ? 2 : 3;
+  const bw = clamp(W*0.20, 104, 196), bh = clamp(H*0.06, 38, 58), bgp = 8;
+  const rows = Math.ceil(defs.length/perRow);
+  const btnTop = H - (rows*(bh+bgp) + 6) - 10;
+  const topBar = 62*U;
+  const py = clamp(btnTop - CH*1.30, topBar + 200*U, btnTop - CH*1.02);
+  const tableTop = topBar + 6, tableBot = py - 14*U;
+  const tableCy = (tableTop + tableBot)/2;
+  const th = Math.max(110*U, Math.min((tableBot - tableTop)*0.66, 300*U));
+  const tw = Math.min(W*0.9, th*2.85);
+  // борд
+  const bSpan = Math.min(tw*0.68, CW*5.6);
+  const bx = cx - bSpan/2, step = (bSpan - CW)/4;
+  const boardY = tableCy - CH*0.60;
+  const board = [];
+  for (let i=0;i<5;i++) board.push({ x: bx + i*step, y: boardY });
+  const pot = { x: cx, y: tableCy + CH*1.12 };
+  const dealer = { x: cx, y: Math.max(topBar + 62*U, tableCy - th*0.5 - 66*U) };
+  const lx = clamp(cx - tw*0.5 - CW*1.7, Math.max(CW*0.8, 250*U), cx - CW*2.2);
+  const rx = clamp(cx + tw*0.5 + CW*0.7, cx + CW*1.2, Math.max(cx + CW*2.2, W - Math.max(CW*2.1, 250*U)));
+  const you = [ { x: cx - CW*1.28, y: py }, { x: cx + CW*0.28, y: py } ];
+  const left = { x: lx, y: tableCy + CH*0.30 };
+  const right = { x: rx, y: tableCy + CH*0.30 };
+  const body = [ { x: cx, y: py + CH*1.02 }, { x: lx + CW*0.55, y: tableCy - CH*0.42 }, { x: rx + CW*0.45, y: tableCy - CH*0.42 } ];
+  const chip = [ { x: cx + CW*3.7, y: py + CH*0.35 }, { x: lx + CW*0.55, y: tableCy + CH*1.72 }, { x: rx + CW*0.45, y: tableCy + CH*1.72 } ];
+  const bub  = [ { x: cx, y: py - 46*U }, { x: lx + CW*0.55, y: tableCy - CH*1.25 }, { x: rx + CW*0.45, y: tableCy - CH*1.25 } ];
+  // кнопки
+  const btn = [];
+  defs.forEach((d, i) => {
+    const r = Math.floor(i/perRow), c = i%perRow;
+    const rowItems = Math.min(perRow, defs.length - r*perRow);
+    const rowW = rowItems*bw + (rowItems-1)*bgp;
+    const sx = cx - rowW/2;
+    btn.push({ id:d.id, x: sx + c*(bw+bgp), y: btnTop + r*(bh+bgp), w:bw, h:bh,
+               label:d.label, sub:d.sub, en:d.en, col:d.col });
   });
-})();
-/* Диагностика — если что-то упадёт, увидишь в консоли */
-window.addEventListener('error',function(e){
-  console.error('[БЕЗУМНЫЙ ПОКЕР] Ошибка:',e.message,'в',e.filename,e.lineno);
+  L = { cx, cy: tableCy, CW, CH, tw, th, board, you, left, right, body, chip, bub, btn, bh,
+        pot, dealer, py, btnTop, topBar, H0: H*0.2 };
+  return L;
+}
+
+/* ---------- 8. СООБЩЕНИЯ, ЖУРНАЛ, ТЕЛЕГРАММЫ ---------- */
+function logIt(txt, cls){
+  G.log.unshift({ t:txt, age:0, cls: cls || '' });
+  if (G.log.length > 26) G.log.pop();
+}
+function say(pi, txt, dur){
+  const p = G.players[pi]; if (!p) return;
+  p.talk = txt; p.talkT = dur || 2.4;
+  G.bub.push({ pi:pi, txt:txt, life:dur || 2.4, t:0, sc:0 });
+}
+function telegram(title, body, tint){
+  G.telQ.push({ title:title, body:body, tint: tint || '#ffdc6a' });
+  if (!G.tel) pullTelegram();
+}
+function pullTelegram(){
+  const n = G.telQ.shift();
+  if (!n){ G.tel = null; return; }
+  G.tel = n; G.tel.t = 0; A.telegram(); G.lawFlash = 1;
+}
+function burst(x, y, n, col, spd, life){
+  for (let i=0;i<n;i++){
+    const a = rnd(TAU), v = rnd(0.3, 1) * (spd || 90);
+    G.parts.push({ x:x, y:y, vx:Math.cos(a)*v, vy:Math.sin(a)*v - 30, life:life || rnd(0.5,1.4),
+                   t:0, col:col || '#fff', r:rnd(1.5,4.5), rot:rnd(TAU), vr:rnd(-4,4), kind:chance(0.4)?'tooth':'spark' });
+  }
+}
+function shakeIt(n){ G.shake = Math.max(G.shake, n); }
+function glitchIt(n){ G.glitch = Math.max(G.glitch, n); A.glitch(); }
+function sanity(d, why){
+  if (G.f.sanityTax && d < 0) d *= 2;
+  G.sanity = clamp(G.sanity + d, 0, 100);
+  if (d < 0) { G.eyeQ += -d; if (why) logIt('−' + (-d|0) + ' психеи: ' + why, 'bad'); }
+  else if (why) logIt('+' + (d|0) + ' психеи: ' + why, 'good');
+  if (G.sanity <= 0) swapReality();
+}
+function swapReality(){
+  const you = G.players[0];
+  if (G.board.length >= 2 && you.cards.length){
+    const i = ri(0, G.board.length-1);
+    let j = ri(0, you.cards.length-1);
+    const a = G.board[i], b = you.cards[j];
+    G.board[i] = b; you.cards[j] = a;
+    b.owner = -2; b.onBoard = true; a.owner = 0; a.onBoard = false;
+    a.up = true;
+    logIt('ЛИЧНОСТЬ МЕНЯЕТСЯ МЕСТАМИ. БОРД СТАЛ ТОБОЙ.', 'bad');
+    telegram('ПРОТОКОЛ «СМЕНА ЛИЧНОСТИ»', 'Ты выдал столу свои карты. Стол выдал тебе свои. Формально ты теперь борд.', '#ff5f87');
+    A.scream(); shakeIt(28); glitchIt(1.4); burst(L.cx, L.cy, 60, '#ff5f87', 260);
+    G.stats.madness++;
+  } else if (you.cards.length){
+    // менять не с чем — стол пересобирает тебя изнутри
+    you.cards.forEach(c => { c.s = (c.s + ri(1,3)) % 4; c.r = ri(0,12); c.glow = 1.8; c.slide = 0; });
+    logIt('МЕНЯТЬСЯ НЕ С ЧЕМ. СТОЛ ПЕРЕСОБРАЛ ТЕБЯ ИЗНУТРИ.', 'bad');
+    telegram('ПРОТОКОЛ «СМЕНА ЛИЧНОСТИ»', 'Твои карты остались у тебя. Внутри них стал другим. Ты держишь их, как держат чужое.', '#ff5f87');
+    A.scream(); shakeIt(28); glitchIt(1.6); burst(L.cx, L.py, 60, '#ff5f87', 260);
+    G.stats.madness++;
+  }
+  G.sanity = 42;
+}
+
+/* ---------- 9. ВЫБОР ЗАКОНОВ ---------- */
+function pickLaws(){
+  G.laws = [];
+  const n = G.hand % 4 === 0 ? 2 : 1;
+  const pool = LAWS.slice();
+  for (let i=0;i<n;i++){
+    const lw = pool.splice(ri(0, pool.length-1), 1)[0];
+    G.laws.push(lw);
+  }
+  G.f = baseFlags();
+  G.laws.forEach(lw => { for (const k in lw.f) G.f[k] = lw.f[k]; });
+  G.ante = G.f.anteDouble ? 10 : 5;
+  G.laws.forEach(lw => telegram('АНТИ-ЗАКОН №' + (lw.id.toUpperCase()), lw.t + ' — ' + lw.s, '#ffdc6a'));
+}
+
+/* ---------- 10. ДРЕЙФ РАНГОВ («КОЛБАСНАЯ ТЕОРЕМА») ---------- */
+function visibleCards(){
+  const out = G.board.filter(c => c.up);
+  G.players.forEach(p => { if (p.cards) out.push(...p.cards.filter(c => c.up)); });
+  return out;
+}
+function drift(n, where){
+  if (!G.deck) return;
+  const src = visibleCards();
+  if (!src.length) return;
+  const moved = [];
+  for (let k=0;k<n;k++){
+    const c = pick(src);
+    if (c.kissed && chance(0.6)) continue; // поцелованная карта держит свой номинал
+    const dir = chance(0.5) ? 1 : -1;
+    const nr = clamp(c.r + dir * ri(1, G.f.driftStorm ? 3 : 1), 0, 12);
+    if (nr === c.r) continue;
+    c.slide = 1; c.slideTo = nr;
+    c.glow = 1;
+    moved.push(RVAL[c.r] + ' ' + SUITS[c.s].name + ' → ' + RVAL[nr]);
+    setTimeoutish(0.25, () => { c.r = nr; A.flip(); });
+    if (G.f.driftStorm) glitchIt(0.35);
+  }
+  if (moved.length && chance(0.8))
+    logIt('КОЛБАСНАЯ ТЕОРЕМА: ' + moved.join(', ') + (where ? ' (' + where + ')' : ''), 'drift');
+  G.drift = 1;
+}
+const TIMERZ = [];
+function setTimeoutish(d, fn){ TIMERZ.push({ t:G.t + d, fn:fn }); }
+function runTimers(){
+  for (let i=TIMERZ.length-1;i>=0;i--){
+    if (G.t >= TIMERZ[i].t){ const f = TIMERZ[i].fn; TIMERZ.splice(i,1); try{ f(); }catch(e){} }
+  }
+}
+function suitBubble(){
+  if (!G.f.suitBubble) return;
+  if (!chance(0.18)) return;
+  const src = visibleCards(); if (!src.length) return;
+  const c = pick(src), old = c.s;
+  c.s = (c.s + ri(1,3)) % 4;
+  c.glow = 1; glitchIt(0.6); shakeIt(6);
+  logIt('Масть ' + SUITS[old].name + ' превратилась в ' + SUITS[c.s].name + '. Никто не удивлён.', 'drift');
+  A.bluescreen();
+}
+
+/* ---------- 11. РАЗДАЧА ---------- */
+function startHand(){
+  layout();
+  G.scene = 'hand'; G.hand++; G.stats.hands++;
+  G.deck = newDeck(); G.board = []; G.muck = []; G.grave = null;
+  G.pot = 0; G.street = 0; G.cur = 0; G.minR = G.ante;
+  G.bet = [0,0,0]; G.acted = [false,false,false];
+  G.folded = [false,false,false]; G.allin = [false,false,false];
+  G.sel = -1; G.feedUsed = false; G.kissUsed = false; G.peeked = 0; G.zoyaAce = false;
+  G.result = null; G.swap = null; G.showT = 0; G.phase = 'dealing';
+  G.players.forEach(p => { p.cards = []; p.talkT = 0; });
+  pickLaws();
+  // анте
+  G.players.forEach((p, i) => {
+    const a = Math.min(G.ante, p.chips);
+    p.chips -= a; G.pot += a; G.bet[i] = a;
+    burst(L.pot.x + rnd(-40,40), L.pot.y, 3, '#f7f3e8', 70, 0.7);
+  });
+  A.chip();
+  logIt('Раздача №' + G.hand + '. Анте ' + G.ante + ' зубов. Свет мигает в такт твоему пульсу.', 'sys');
+  // карты
+  let d = 0;
+  for (let round=0; round<2; round++){
+    for (let i=0;i<3;i++){
+      const p = G.players[i];
+      if (p.chips <= 0 && !p.you) continue;
+      const c = G.deck.pop();
+      c.owner = i; c.up = p.you; c.x = L.dealer.x; c.y = L.dealer.y;
+      c.tx = 0; c.ty = 0; c.trot = rnd(-0.12,0.12); c.sc = 0.25; c.tsc = 1; c.born = G.t + d*0.16;
+      p.cards.push(c);
+      d++; setTimeoutish(d*0.16, () => A.card());
+    }
+  }
+  G.order = shuffle([0,1,2].filter(i => G.players[i].chips > 0 || i === 0));
+  G.ai = 2; // первый ход — твой (мотылёк сдаёт по часовой)
+  setTimeoutish(0.9, () => { G.phase = 'pre'; beginStreet(0); });
+  sanity(-1, 'сам факт раздачи');
+}
+function dealBoard(count, cb){
+  let d = 0;
+  for (let k=0;k<count;k++){
+    if (G.f.eatBoard && chance(0.5) && G.deck.length){
+      const e = G.deck.pop(); G.muck.push(e); mem(e).eaten++;
+      telegram('МОТЫЛЁК ГОЛОДЕН', 'Игорь Николаевич съел карту ' + cname(e) + ' до сдачи. Она была твоей по плану.', '#8dff9e');
+      sanity(-6, 'мотылёк съел твою карту');
+    }
+    const c = G.deck.pop();
+    if (!c) break;
+    c.onBoard = true; c.owner = -2; c.up = false;
+    c.x = L.dealer.x; c.y = L.dealer.y; c.sc = 0.25;
+    c.born = G.t + d*0.2;
+    G.board.push(c);
+    d++;
+    setTimeoutish(d*0.2, () => { A.card(); });
+    setTimeoutish(d*0.2 + 0.32, () => { c.up = true; c.glow = 1; A.flip();
+      if (mem(c).eaten > 0 || mem(c).grudge >= 3){ c.bite = 1; sanity(-9, 'эта карта помнит, как ты её сдал');
+        logIt('Карта ' + cname(c) + ' вернулась с обидой. Она кусается.', 'bad');
+        G.stats.bites++; glitchIt(0.9); shakeIt(14); A.scream(); }
+    });
+  }
+  setTimeoutish(d*0.2 + 0.5, () => { drift(G.f.driftStorm ? 3 : 1, 'борд остывает'); suitBubble(); if (cb) cb(); });
+}
+
+/* ---------- 12. ТОРГИ ---------- */
+function beginStreet(st){
+  G.street = st; G.cur = 0;
+  G.bet = [0,0,0]; G.acted = [false,false,false];
+  if (G.f.graveVote && G.muck.length){
+    G.grave = pick(G.muck);
+    logIt('МЁРТВЫЕ ГОЛОСУЮТ: карта ' + cname(G.grave) + ' участвует в раздаче из сброса.', 'drift');
+    glitchIt(0.4);
+  } else G.grave = null;
+  const live = G.order.filter(i => !G.folded[i] && G.players[i].cards.length);
+  if (live.length < 2){ return showdown(); }
+  if (st === 1) dealBoard(3, () => { G.phase='flop'; nextTurn(true); });
+  else if (st === 2) dealBoard(1, () => { G.phase='turn'; nextTurn(true); });
+  else if (st === 3) dealBoard(1, () => { G.phase='river'; nextTurn(true); });
+  else { G.phase='pre'; nextTurn(true); }
+  madness(st);
+}
+function nextTurn(fromStreet){
+  const live = G.order.filter(i => !G.folded[i] && G.players[i].cards.length);
+  if (live.length <= 1){ showdown(); return; }
+  let guard = 0;
+  while (guard++ < 12){
+    G.ai = (G.ai + 1) % 3;
+    const i = G.ai;
+    if (G.folded[i] || !G.players[i].cards.length) continue;
+    if (G.players[i].chips <= 0 || G.allin[i]){ G.acted[i] = true; continue; } // ему уже нечем играть
+    if (!G.acted[i] || G.bet[i] < G.cur){ return setTurn(i); }
+  }
+  streetDone();}
+function setTurn(i){
+  G.ai = i;
+  const p = G.players[i];
+  if (p.chips <= 0 && G.bet[i] >= G.cur){ G.acted[i] = true; return nextTurn(); }
+  if (!p.you){
+    const kind = p.kind;
+    if (kind === 'andry' && p.freeze > 0){
+      p.freeze--; logIt('АНДРЮША завис: «СДАЧА… СДАЧА… СДАЧА» — слово вызвало синий экран.', 'bad');
+      A.bluescreen(); glitchIt(1.1); shakeIt(10);
+      const r = ri(0,2); G.bub.push({ pi:i, txt:['ОШИБКА 0xПОКЕР','ВОЗВРАТ ТОВАРА НЕВОЗМОЖЕН','СДАЧА НЕ ПРЕДУСМОТРЕНА'][r], life:2.2, t:0, sc:0 });
+      setTimeoutish(1.2, () => { G.acted[i] = true; nextTurn(); });
+      return;
+    }
+    setTimeoutish(rnd(0.75, 1.7), () => botAct(i));
+  }
+}
+function streetDone(){
+  if (G.street === 3){ G.phase = 'show'; showdown(); }
+  else beginStreet(G.street + 1);
+}
+function payChips(i, amt){
+  const p = G.players[i];
+  const real = Math.min(amt, p.chips);
+  p.chips -= real; G.bet[i] += real; G.pot += real;
+  if (p.chips === 0) G.allin[i] = true;
+  for (let k=0;k<Math.min(6, Math.ceil(real/3));k++)
+    burst(L.pot.x + rnd(-50,50), L.pot.y + rnd(-10,10), 1, '#f7f3e8', 60, 0.8);
+  A.tooth();
+  return real;
+}
+function doAction(i, act, to){
+  const p = G.players[i];
+  if (G.folded[i] || G.phase === 'show' || G.phase === 'end' || G.phase === 'dealing') return;
+  if (act === 'check' && G.cur > G.bet[i]) return;
+  if (act === 'call' && G.cur <= G.bet[i]) return doAction(i, 'check');
+  G.acted[i] = true;
+  if (act === 'fold'){
+    G.folded[i] = true;
+    p.cards.forEach(c => { const m = mem(c); m.folds++; m.grudge += 1.5; m.last = i; G.muck.push(c); c.up = false; c.owner = -3; });
+    p.cards = [];
+    logIt(p.name + (p.you ? ' выходишь' : ' выходит') + ' из комнаты. Карты помнят это.', 'muck');
+    if (p.you){ A.scream(); shakeIt(12); glitchIt(0.5); say(0, 'Я просто выйду подышать', 2); sanity(-4, 'трусость'); }
+    else { say(i, pick(['Я тут вяжу.','Ухожу в стенной шкаф.','Мои карты дышали без меня.']), 2.2); A.clack(); }
+    if (G.f.graveVote && G.muck.length){ /* мёртвые проголосуют на шоудауне */ }
+    nextTurn(); return;
+  }
+  if (act === 'check'){
+    if (G.cur > G.bet[i]) return;
+    logIt(p.name + (p.you ? ' молчишь' : ' молчит') + (chance(0.3) ? (p.you ? ' и моргаешь' : ' и моргает') + ' ровно один раз' : ''), 'act');
+    say(i, p.you ? '…' : pick(['Молчание — тоже ход.','Не скажу.','Пусть стол решает.','Я просто дышу.']), 1.6);
+    A.clack(); sanity(-0.5*(G.f.sanityTax?2:1)); suitBubble(); nextTurn(); return;
+  }
+  if (act === 'call'){
+    const need = G.cur - G.bet[i];
+    const real = payChips(i, need);
+    if (real <= 0){
+      logIt(p.name + (p.you ? ' отдаёшь' : ' отдаёт') + ' столу воздух — играть нечем', 'muck');
+      A.clack(); nextTurn(); return;
+    }
+    logIt(p.name + (p.you ? ' кладёшь ' : ' кладёт ') + real + ' зубов' + (chance(0.35) ? ' (сдача не выдаётся)' : ''), 'act');
+    if (!p.you && chance(0.4)) say(i, pick(['Возьми. Сдачи не будет.','Зуб за зуб.','Жуёшь?']), 1.8);
+    if (p.kind === 'andry' && /сдача/.test(G.log[0].t)){ p.freeze = 1; logIt('Андрюша услышал слово «сдача» и завис.', 'bad'); }
+    A.chip(); sanity(-1*(G.f.sanityTax?2:1)); suitBubble(); nextTurn(); return;
+  }
+  if (act === 'raise'){
+    const prev = G.cur;
+    const target = clamp(Math.round(to), G.cur + Math.max(1, G.minR), G.bet[i] + p.chips);
+    const real = payChips(i, target - G.bet[i]);
+    G.minR = Math.max(G.ante, target - prev);
+    G.cur = target; G.lastAggressor = i;
+    for (let j=0;j<3;j++) if (j !== i && !G.folded[j]) G.acted[j] = false;
+    G.acted[i] = true;
+    logIt(p.name + (p.you ? ' поднимаешь' : ' поднимает') + ' реальность до ' + target + ' зубов', 'act');
+    if (!p.you){ say(i, pick(['Я добавляю, значит живой.','Повышаю. Болит.','Ставки растут как зубы в горле.']), 1.9); }
+    else { shakeIt(9); A.bell(); }
+    glitchIt(0.25); sanity(-(p.you?2:1)*(G.f.sanityTax?2:1)); suitBubble();
+    if (G.f.driftStorm && chance(0.5)) drift(2, 'повышение тряхнуло ранги');
+    nextTurn(); return;
+  }
+}
+
+/* ---------- 13. ОЦЕНКА СИЛЫ (для ботов и подсказок) ---------- */
+function holeFor(i){
+  const p = G.players[i];
+  let cards = p.cards.slice();
+  if (!G.f.ignoreBoard) cards = cards.concat(G.board.filter(c => c.up));
+  if (G.f.boardTail && p.you){
+    const tail = G.board.filter(c => c.up).slice(-3);
+    cards = cards.concat(tail); // последние три карты борда считаются твоими зубами дважды
+  }
+  if (G.f.graveVote && G.grave) cards.push(G.grave);
+  return cards;
+}
+function strength(i){
+  const p = G.players[i];
+  if (!p.cards.length) return 0;
+  const mine = holeFor(i);
+  const e = bestOf(mine, G.f);
+  let v = clamp((e.cat + 1) / 9, 0, 1);
+  const hi = Math.max.apply(null, mine.map(c => c.r));
+  v = v * 0.72 + (hi / 12) * 0.28;
+  if (G.f.invert) v = 1 - v;
+  return v;
+}
+function handName(i){
+  const e = bestOf(holeFor(i), G.f);
+  return e.name;
+}
+
+/* ---------- 14. БОТЫ ---------- */
+const ZOYA_LINES = ['Вяжи, вяжи, вяжи…','У меня тут туз в напёрстке.','Ты не семёрка? Слава стенам.',
+  'Игорь Николаевич, не смотри на меня так.','Раньше за этим столом сидел мой муж. Он стал линолеумом.',
+  'Дай зуб, родной. Мне только на накладку.'];
+const ANDRY_LINES = ['Вставьте монету или сознание.','Товар не возвращается.','Проходите, следующий.',
+  'Я вижу борд. Я вижу всё. Я вижу вас.','Чек… шек… сек… ссек…','Скидка на вечность: 0%.'];
+function botAct(i){
+  const p = G.players[i];
+  if (G.folded[i] || G.phase === 'show' || G.phase === 'end' || G.scene !== 'hand') return;
+  // чит Зои: туз из рукава (один раз на раздачу)
+  if (p.kind === 'zoya' && !G.zoyaAce && chance(0.4) && p.cards.length){
+    G.zoyaAce = true;
+    const victim = p.cards[ri(0, p.cards.length-1)];
+    const ace = G.deck.length ? G.deck[G.deck.length-1] : null;
+    const newCard = mkCard(ri(0,3), 12);
+    newCard.s = victim.s;
+    logIt('Зоя Павловна вытащила из напёрстка карту ' + cname(newCard) + '. Это не её карта.', 'cheat');
+    say(i, 'Это не подглядывание, это рукоделие.', 2.4);
+    p.cards[p.cards.indexOf(victim)] = newCard;
+    newCard.owner = i; newCard.x = victim.x; newCard.y = victim.y - 30; newCard.sc = 0.4;
+    newCard.up = false; newCard.glow = 1.6;
+    G.deck.push(victim); shuffle(G.deck);
+    sanity(-5, 'ты это видел, но доказательства уходят в линолеум');
+    glitchIt(0.7); A.telegram();
+  }
+  // фобия Зои: семёрки
+  if (p.kind === 'zoya'){
+    const seven = p.cards.find(c => c.b === 5);
+    if (seven && !G.f.wildDeuce){
+      p.phobia7++;
+      logIt('Зоя Павловна увидела на руке карту ' + cname(seven) + '. Мигрень. Она сбрасывает.', 'bad');
+      say(i, 'СЕМЁРКИ. УБЕРИТЕ СЕМЁРКИ. Я ИХ СЛЫШУ.', 2.6);
+      A.scream(); shakeIt(20); glitchIt(1.2); burst(seven.x + L.CW/2, seven.y + L.CH/2, 26, '#ff5f87', 200);
+      doAction(i, 'fold'); return;
+    }
+  }
+  // чит Андрюши: взгляд в борд
+  if (p.kind === 'andry' && chance(0.35)){
+    G.peeked++;
+    if (G.peeked >= 3){
+      logIt('АНДРЮША-117 подглядел дважды. Третий раз — перегрузка. Он выключается.', 'bad');
+      say(i, 'СИСТЕМНАЯ ОШИБКА: СЛИШКОМ МНОГО БУДУЩЕГО', 3);
+      A.bluescreen(); glitchIt(1.6); shakeIt(24);
+      doAction(i, 'fold'); return;
+    }
+    const nxt = G.deck[G.deck.length-1];
+    if (nxt) say(i, 'Скоро ляжет карта ' + cname(nxt) + '. Я уже вижу.', 2.2);
+    logIt('Андрюша объявил следующую карту борда заранее.', 'cheat');
+    sanity(-3, 'будущее сказали тебе в лицо');
+  }
+  const s = strength(i);
+  const need = G.cur - G.bet[i];
+  const pot = G.pot + need;
+  const odds = need > 0 ? need / pot : 0;
+  let aggr = p.aggr * (G.f.botsPassive ? 0.15 : 1);
+  let bluf = p.bluff;
+  if (p.kind === 'zoya' && G.street > 1) bluf *= 1.5;
+  if (p.kind === 'andry') bluf *= (G.hand % 2 ? 1.3 : 0.7);
+  // raise
+  if (need === 0){
+    if (s > 0.62 && chance(aggr)){
+      const to = clamp(Math.round(G.cur + Math.max(G.ante, G.pot * (0.5 + s))), G.minR, p.chips);
+      doAction(i, 'raise', Math.max(G.cur + G.minR, to)); return;
+    }
+    if (chance(bluf) && p.chips > G.ante * 2){
+      doAction(i, 'raise', G.cur + Math.max(G.minR, Math.round(G.pot * 0.4))); return;
+    }
+    doAction(i, 'check'); return;
+  }
+  if (s > 0.55 || (s > odds * 0.9 && chance(0.8))){
+    if (s > 0.78 && chance(aggr * 0.8) && p.chips > need + G.minR){
+      doAction(i, 'raise', G.cur + Math.max(G.minR, Math.round(G.pot * (0.6 + s * 0.5)))); return;
+    }
+    doAction(i, 'call'); return;
+  }
+  if (chance(bluf * 0.5) && p.chips > need + G.minR && G.street < 3){
+    doAction(i, 'raise', G.cur + Math.max(G.minR, Math.round(need * 1.6))); return;
+  }
+  if (need <= p.chips * 0.06 && chance(0.5)){ doAction(i, 'call'); return; }
+  doAction(i, 'fold');
+}
+
+/* ---------- 15. БЕЗУМИЕ ПО ХОДУ РАЗДАЧИ ---------- */
+const WHISPERS = ['под линолеумом кто-то считает твои зубы','Игорь Николаевич моргает дважды там, где глаз нет',
+  'раковина требует открыть воду. вода требует открыть тебя','лампа шепчет твоё детское имя задом наперёд',
+  'в зеркале напротив тебя уже вскрыли','пол стал теплее на 2 градуса','у стола выросли ресницы',
+  'все семёрки в этой комнате смотрят на Зою','кассовый аппарат плачет мелочью','твоя карта дышит. ты — нет'];
+function madness(st){
+  const roll = Math.random();
+  if (roll < 0.2){ logIt('ГОЛОС ИЗ ЛИНОЛЕУМА: ' + pick(WHISPERS), 'whisper'); A.hum(ri(0,9)); sanity(-2); }
+  else if (roll < 0.3 && G.board.length >= 2){
+    const a = ri(0, G.board.length-1); let b = ri(0, G.board.length-1);
+    const t = G.board[a]; G.board[a] = G.board[b]; G.board[b] = t;
+    logIt('Реальность переставила карты борда. Борд не сопротивлялся.', 'drift');
+    glitchIt(0.6); shakeIt(8); A.glitch();
+  }
+  else if (roll < 0.38 && st > 0 && G.deck.length){
+    const c = G.deck.pop(); c.onBoard = true; c.owner = -2; c.up = false;
+    c.x = L.dealer.x; c.y = L.dealer.y; c.sc = 0.25; c.born = G.t;
+    G.board.push(c);
+    telegram('ШЕСТАЯ КАРТА ИЗ БУДУЩЕГО', 'Кто-то сдал карту раньше срока. ' + RVAL[c.b] + ' ' + SUITS[c.s].name + ' легла поверх. Она лишняя. Она всегда лишняя.', '#79d6ff');
+    setTimeoutish(0.4, () => { c.up = true; A.flip(); });
+    G.stats.madness++;
+  }
+  else if (roll < 0.5){
+    const c = G.board.find(x => x.up);
+    if (c){ c.slide = 1; setTimeoutish(0.2, () => { c.r = ri(0,12); c.glow = 1.4; A.scream(); });
+      logIt('Карта ' + RVAL[c.r] + ' на борду отказалась от своего номинала.', 'drift');
+      glitchIt(0.9); shakeIt(12); sanity(-4, 'ты слышал, как карта меняет имя'); }
+  }
+  else if (roll < 0.6){
+    G.eyeQ += 8; logIt('Стены запомнили эту раздачу.', 'whisper');
+  }
+  else if (roll < 0.72 && !G.f.botsPassive && G.street > 0){
+    const b = G.players[1 + ri(0,1)];
+    say(1 + (b.kind==='zoya'?0:1), pick(b.kind==='zoya' ? ZOYA_LINES : ANDRY_LINES), 2.4);
+  }
+  else if (roll < 0.85){
+    drift(G.f.driftStorm ? 4 : 2, 'стол голоден');
+  }
+  else {
+    logIt('ПСИХЕЯ УТЕКАЕТ ЧЕРЕЗ ЩЕЛЬ В СТОЛЕ', 'bad'); sanity(-7, 'щель в столе'); glitchIt(0.8); shakeIt(10);
+  }
+  G.breath = 1;
+}
+/*__PART3__*/
+/* ---------- 16. ШОУДАУН И РАСПРЕДЕЛЕНИЕ ЗУБОВ ---------- */
+function showdown(){
+  layout();
+  G.phase = 'show'; G.showT = 0;
+  G.players.forEach(p => p.cards.forEach(c => { c.up = true; c.glow = 1.2; }));
+  A.bell(); shakeIt(6);
+  const live = G.order.filter(i => !G.folded[i] && G.players[i].cards.length);
+  if (live.length === 0) return endHand([], 'Никто не остался. Зубы ушли в линолеум.');
+  if (live.length === 1){
+    const w = G.players[live[0]];
+    w.cards.forEach(c => { c.up = true; });
+    return endHand([live[0]], 'Все вышли из комнаты. В комнате остался ' + w.name + '.');
+  }
+  const scored = live.map(i => ({ i:i, e:bestOf(holeFor(i), G.f) }));
+  scored.sort((x, y) => -compareHands(x.e, y.e, G.f));
+  G.result = scored;
+  const top = scored[0].e;
+  let winners = scored.filter(s => compareHands(s.e, top, G.f) === 0).map(s => s.i);
+  // месть карт
+  let revenger = null;
+  scored.forEach(s => s.e.cards.forEach(c => { const m = mem(c); if (m.grudge >= 4 && !revenger) revenger = c; }));
+  if (revenger && chance(0.45)){
+    logIt('ОБИЖЕННАЯ КАРТА: ' + RVAL[revenger.b] + ' ' + SUITS[revenger.s].name +
+          ' отказалась приносить победу. Банк забирает СТОЛ.', 'bad');
+    telegram('БАНК ЗАБРАЛ СТОЛ', 'Карта помнит, как её бросали. Она договорилась с линолеумом. Ты слышишь, как зубы уходят под пол.', '#b07bff');
+    winners = [];
+    sanity(-12, 'карта мстит'); glitchIt(1.4); shakeIt(22); A.scream();
+    G.stats.madness++;
+  }
+  G.players.forEach((p, i) => {
+    if (!p.cards.length) return;
+    const sc = scored.find(s => s.i === i);
+    if (!sc) return;
+    say(i, (p.you ? 'У меня: ' : p.name.split(' ')[0] + ': ') + sc.e.name, 3.2);
+  });
+  endHand(winners, null);
+}
+function endHand(winners, forcedMsg){
+  const pot = G.pot; G.pot = 0;
+  const msg = [];
+  if (forcedMsg){ msg.push(forcedMsg); }
+  if (winners.length === 0){
+    msg.push('СТОЛ съел ' + pot + ' зубов. Он долго жевал.');
+    A.bluescreen(); shakeIt(18);
+  } else {
+    const share = Math.floor(pot / winners.length);
+    const rest = pot - share * winners.length;
+    winners.forEach((wi, k) => {
+      const p = G.players[wi];
+      const gain = share + (k === 0 ? rest : 0);
+      p.chips += gain;
+      p.cards.forEach(c => { mem(c).wins++; mem(c).grudge = Math.max(0, mem(c).grudge - 0.5); mem(c).love += 0.4; });
+      msg.push(p.name + (p.you ? ' забираешь ' : ' забирает ') + gain + ' зубов (' + (G.result ? bestOf(holeFor(wi), G.f).name : 'чужой сброс') + ')');
+      if (wi === 0){ A.win(); sanity(14, 'ты снова дышишь победой'); burst(L.cx, L.cy, 40, '#ffdc6a', 220); }
+      else { A.bust(); sanity(-6, 'чужие зубы звенят ближе'); }
+    });
+    G.stats.wins += winners.includes(0) ? 1 : 0;
+    burst(L.pot.x, L.pot.y, 26, '#f7f3e8', 180, 1.2);
+  }
+  // проигравшие карты обижаются
+  G.players.forEach(p => p.cards.forEach(c => {
+    const m = mem(c);
+    if (!winners.some(wi => G.players[wi].cards.includes(c))) { m.lost++; m.grudge += 1; }
+  }));
+  G.phase = 'end'; G.showT = 0;
+  msg.forEach(t => logIt(t, 'money'));
+  layout();
+  setTimeoutish(3.6, nextHand);
+  checkBust();
+}
+function checkBust(){
+  G.players.forEach((p, i) => {
+    if (!p.you && p.chips <= 0 && !p.busted){
+      p.busted = true;
+      logIt(p.name + ' выписан(а). ' + (p.kind === 'zoya' ? 'Стул остался вязать без неё.' : 'Касса продолжает печатать чеки в пустоту.'), 'sys');
+      telegram('ВЫПИСКА', p.name + ' забирает свои зубы и уходит в стену. '+ pick(['Дверь хлопает трижды.','Дверь осталась в ней.','Стул помахал след.']), '#79d6ff');
+      A.scream(); glitchIt(1);
+    }
+  });
+  const alive = G.players.filter(p => !p.you && !p.busted && p.chips > 0).length;
+  if (G.players[0].chips <= 0){
+    setTimeoutish(0.4, () => { G.scene = 'over'; A.bust(); glitchIt(2); shakeIt(30); });
+  } else if (alive === 0){
+    setTimeoutish(0.4, () => { G.scene = 'win'; A.win(); G.flash = 1; });
+  }
+}
+function nextHand(){
+  if (G.scene !== 'hand') return;
+  if (G.players[0].chips <= 0){ G.scene = 'over'; return; }
+  if (G.players.filter(p => !p.you && p.chips > 0).length === 0){ G.scene = 'win'; return; }
+  // подкидываем разорившимся ботам по 20 «займовых» зубов — стол не закрывается
+  G.players.forEach(p => { if (!p.you && p.chips <= 0){ p.chips = 20; p.busted = false;
+    logIt(p.name + ' заняла зубов у стенного шкафа. Игра продолжается.', 'sys'); } });
+  startHand();
+}
+
+/* ---------- 17. СПЕЦИФИЧЕСКИЕ ДЕЙСТВИЯ ИГРОКА ---------- */
+function needCall(){ return Math.max(0, G.cur - G.bet[0]); }
+function raiseTarget(){ return clamp(G.cur + Math.max(G.minR, Math.round(G.pot * 0.55)), G.cur + G.minR, G.players[0].chips + G.bet[0]); }
+function allInTarget(){ return G.bet[0] + G.players[0].chips; }
+function playerAct(id){
+  if (G.scene !== 'hand') return;
+  if (G.ai !== 0 || G.folded[0] || G.phase === 'show' || G.phase === 'end' || G.phase === 'dealing') return;
+  const you = G.players[0];
+  if (id === 'fold') return doAction(0, 'fold');
+  if (id === 'call') return needCall() > 0 ? doAction(0, 'call') : doAction(0, 'check');
+  if (id === 'raise') return doAction(0, 'raise', raiseTarget());
+  if (id === 'allin'){ say(0, 'Я закладываю почку. Она тут лишняя.', 2.4); return doAction(0, 'raise', allInTarget()); }
+  if (id === 'kiss'){
+    if (G.sel < 0 || !you.cards[G.sel]){ say(0, 'Сначала выбери карту.', 1.8); return; }
+    const c = you.cards[G.sel];
+    if (c.kissed){ say(0, 'Уже. Мы оба это помним.', 1.8); return; }
+    c.kissed = true; c.glow = 1.6; mem(c).love += 2; mem(c).grudge = Math.max(0, mem(c).grudge - 2);
+    const q = L ? { x:c.x + L.CW/2, y:c.y + L.CH/2 } : { x:W/2, y:H/2 };
+    burst(q.x, q.y, 20, '#ff5f87', 90, 1.1);
+    A.tone(660, 0.35, 'sine', 0.1, 990);
+    sanity(6, 'ты поцеловал карту. Она теперь на твоей стороне');
+    logIt('Ты поцеловал карту ' + cname(c) + '. Она запомнила вкус.', 'good');
+    say(0, pick(['Спасибо, что не сдал.','Я теперь с тобой до конца.','Можно я полежу вверх лицом?']), 2.2);
+    return;
+  }
+  if (id === 'feed'){
+    if (G.feedUsed){ say(0, 'Стол наелся. На эту раздачу.', 1.8); return; }
+    if (G.sel < 0 || !you.cards[G.sel]){ say(0, 'Выбери карту, которую готов съесть.', 1.8); return; }
+    const c = you.cards[G.sel];
+    const m = mem(c);
+    you.cards.splice(G.sel, 1); G.sel = -1;
+    m.eaten++; m.grudge += 2.5; m.last = 0;
+    c.owner = -3; c.up = false; G.muck.push(c);
+    const pay = Math.min(G.ante * 2, you.chips);
+    you.chips -= pay; G.pot += pay;
+    c.x = L.cx; c.y = L.cy; c.tx = L.pot.x; c.ty = L.pot.y + 20; c.trot = rnd(-1,1);
+    G.feedUsed = true;
+    A.noise(0.5, 0.25, 420, 'lowpass'); A.clack(); shakeIt(16); glitchIt(1);
+    sanity(9, 'ты накормил стол. стало спокойнее');
+    logIt('Тот, кто сбрасывает свою карту и кормит стол, платит ' + pay + ' зубов. Карта будет помнить.', 'muck');
+    telegram('КАРТА СЪЕДЕНА', 'Карта ' + cname(c) + ' ушла под скатерть. Если она вернётся на борд — она укусит.', '#b07bff');
+    burst(L.pot.x, L.pot.y, 30, '#b07bff', 160);
+  }
+}
+function actionButtons(){
+  const scene = G.scene;
+  if (scene === 'title') return [
+    { id:'start', label:'ЕСТЬ СВОБОДНОЕ МЕСТО', sub:'сесть за стол', en:true, col:'#ffdc6a' },
+    { id:'lore',  label:'ЧТО ТУТ ПРОИСХОДИТ', sub:'правила не найдены', en:true, col:'#79d6ff' },
+    { id:'mute',  label: A.on ? 'ЗВУК: ПАЛАТА ГУДИТ' : 'ЗВУК: ТИШИНА', sub:'вкл/выкл', en:true, col:'#8dff9e' }
+  ];
+  if (scene === 'over' || scene === 'win') return [
+    { id:'again', label: scene === 'win' ? 'СЕСТЬ СНОВА' : 'ПОПРОСИТЬ ВТОРОЙ ШАНС', sub:'пересдать реальность', en:true, col:'#ffdc6a' },
+    { id:'mute',  label: A.on ? 'ЗВУК: ПАЛАТА ГУДИТ' : 'ЗВУК: ТИШИНА', sub:'вкл/выкл', en:true, col:'#8dff9e' }
+  ];
+  const you = G.players[0], can = (G.ai === 0 && !G.folded[0] && G.phase !== 'show' && G.phase !== 'end' && G.phase !== 'dealing');
+  const nc = needCall();
+  const out = [
+    { id:'fold',  label:'ВЫЙТИ ИЗ КОМНАТЫ', sub:'карты останутся здесь', en:can, col:'#ff5f87' },
+    { id:'call',  label: nc > 0 ? 'ПОЛОЖИТЬ ' + nc + ' ЗУБОВ' : 'ПРОМОЛЧАТЬ', sub: nc > 0 ? 'уравнять ставку' : 'чек', en:can && (nc === 0 || nc <= you.chips), col:'#79d6ff' },
+    { id:'raise', label:'ПОДНЯТЬ РЕАЛЬНОСТЬ', sub:'+' + Math.max(0, raiseTarget() - G.bet[0]) + ' зубов', en:can && you.chips > Math.max(1, G.minR), col:'#ffdc6a' },
+    { id:'allin', label:'ЗАЛОЖИТЬ ПОЧКУ', sub:'ва-банк: ' + you.chips, en:can && you.chips > 0, col:'#ff8a3d' },
+    { id:'kiss',  label:'ПОЦЕЛОВАТЬ КАРТУ', sub:'+6 психеи, верность', en:can && you.cards.some(c => !c.kissed), col:'#8dff9e' },
+    { id:'feed',  label:'ПОКОРМИТЬ СТОЛ', sub:'съешь свою карту', en:can && !G.feedUsed && you.cards.length > 1, col:'#b07bff' }
+  ];
+  if (G.f.mirror) out.reverse();
+  return out;
+}
+/*__PART4__*/
+/* ---------- 18. МАЛЕНЬКИЕ ХУДОЖНИКИ ---------- */
+const F_SERIF = '"Iowan Old Style","Palatino Linotype",Georgia,serif';
+const F_MONO  = 'ui-monospace,"SF Mono",Menlo,Consolas,monospace';
+function rrect(x, y, w, h, r){
+  ctx.beginPath();
+  r = Math.min(r, w/2, h/2);
+  ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y); ctx.closePath();
+}
+function txt(s, x, y, size, col, align, font, alpha, rot, sh){
+  ctx.save();
+  ctx.translate(x, y); if (rot) ctx.rotate(rot);
+  ctx.font = size + 'px ' + (font || F_SERIF);
+  ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+  ctx.globalAlpha = alpha === undefined ? 1 : alpha;
+  if (sh){ ctx.fillStyle = sh; ctx.fillText(s, 1.5, 1.5); }
+  ctx.fillStyle = col || '#fff'; ctx.fillText(s, 0, 0);
+  ctx.restore();
+}
+function wrap(s, max){
+  const words = String(s).split(' '), out = []; let line = '';
+  ctx.font = max.f || F_SERIF;
+  for (const w of words){
+    const t = line ? line + ' ' + w : w;
+    if (ctx.measureText(t).width > max.w && line){ out.push(line); line = w; } else line = t;
+  }
+  if (line) out.push(line);
+  return out;
+}
+/* процедурные масти */
+function glyphNail(x, y, s, col){
+  ctx.save(); ctx.translate(x, y); ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = s*0.13;
+  ctx.beginPath(); ctx.moveTo(-s*0.16, -s*0.5); ctx.lineTo(s*0.16, -s*0.5);
+  ctx.lineTo(s*0.09, s*0.34); ctx.lineTo(0, s*0.55); ctx.lineTo(-s*0.09, s*0.34); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, -s*0.5, s*0.3, s*0.13, 0, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+function glyphTooth(x, y, s, col){
+  ctx.save(); ctx.translate(x, y); ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.moveTo(-s*0.42, -s*0.42); ctx.quadraticCurveTo(0, -s*0.72, s*0.42, -s*0.42);
+  ctx.quadraticCurveTo(s*0.52, s*0.05, s*0.3, s*0.5); ctx.quadraticCurveTo(s*0.12, s*0.2, 0, s*0.5);
+  ctx.quadraticCurveTo(-s*0.12, s*0.2, -s*0.3, s*0.5); ctx.quadraticCurveTo(-s*0.52, s*0.05, -s*0.42, -s*0.42);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function glyphGlass(x, y, s, col){
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = col; ctx.beginPath();
+  ctx.moveTo(0, -s*0.55); ctx.lineTo(s*0.4, -s*0.05); ctx.lineTo(s*0.18, s*0.5); ctx.lineTo(-s*0.28, s*0.42); ctx.lineTo(-s*0.42, -s*0.12);
+  ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 0.5; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = s*0.05;
+  ctx.beginPath(); ctx.moveTo(-s*0.2, -s*0.28); ctx.lineTo(s*0.16, s*0.1); ctx.stroke(); ctx.restore();
+}
+function glyphMoth(x, y, s, col){
+  ctx.save(); ctx.translate(x, y); ctx.fillStyle = col;
+  for (const k of [-1, 1]){
+    ctx.beginPath();
+    ctx.moveTo(0, -s*0.1);
+    ctx.quadraticCurveTo(k*s*0.72, -s*0.6, k*s*0.5, s*0.05);
+    ctx.quadraticCurveTo(k*s*0.42, s*0.5, 0, s*0.2);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = col; ctx.globalAlpha = 0.9;
+  ctx.beginPath(); ctx.ellipse(0, 0, s*0.09, s*0.34, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = col; ctx.lineWidth = s*0.05;
+  ctx.beginPath(); ctx.moveTo(0, -s*0.3); ctx.lineTo(-s*0.16, -s*0.56); ctx.moveTo(0, -s*0.3); ctx.lineTo(s*0.16, -s*0.56); ctx.stroke();
+  ctx.restore();
+}
+const GLYPH = [glyphNail, glyphTooth, glyphGlass, glyphMoth];
+
+/* ---------- 19. КОМНАТА (фон) ---------- */
+function drawRoom(dt){
+  const dist = 1 - G.sanity/100;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0a1116'); g.addColorStop(0.42, '#0d1a1c'); g.addColorStop(1, '#05070a');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // кафель на стене
+  const ts = clamp(W/16, 34, 90);
+  ctx.strokeStyle = rgba(120, 190, 180, 0.07); ctx.lineWidth = 1;
+  for (let x = -((G.t*4)%ts); x < W + ts; x += ts){
+    ctx.beginPath(); ctx.moveTo(x + wob(x, G.t*0.2, dist*6), 0); ctx.lineTo(x, H*0.62); ctx.stroke();
+  }
+  for (let y = 0; y < H*0.62; y += ts){
+    ctx.beginPath(); ctx.moveTo(0, y + wob(y, G.t*0.25, dist*5)); ctx.lineTo(W, y); ctx.stroke();
+  }
+  // люминесцентная лампа
+  const lampY = H*0.055, lampW = W*0.42;
+  const flick = nz('lamp', Math.floor(G.t*14)) > 0.12 ? 1 : 0.25;
+  const lg = ctx.createRadialGradient(W/2, lampY, 8, W/2, lampY, lampW*0.9);
+  lg.addColorStop(0, rgba(210, 255, 240, 0.5*flick)); lg.addColorStop(0.4, rgba(120, 210, 190, 0.1*flick));
+  lg.addColorStop(1, rgba(0,0,0,0));
+  ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H*0.6);
+  ctx.fillStyle = rgba(225, 255, 245, 0.75*flick);
+  rrect(W/2 - lampW/2, lampY - 5*U, lampW, 10*U, 5); ctx.fill();
+  ctx.strokeStyle = rgba(90, 130, 120, 0.5); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W/2 - lampW/2, lampY); ctx.lineTo(W/2 - lampW/2 - 24, lampY - 30);
+  ctx.moveTo(W/2 + lampW/2, lampY); ctx.lineTo(W/2 + lampW/2 + 24, lampY - 30); ctx.stroke();
+  if (flick < 0.5 && chance(0.3)) A.hum(3);
+  // окно в никуда
+  const wx = W*0.885, wy = H*0.045, ww = Math.min(W*0.095, 150*U), wh = ww*1.25;
+  ctx.save(); ctx.beginPath(); rrect(wx, wy, ww, wh, 6); ctx.clip();
+  const ng = ctx.createLinearGradient(wx, wy, wx + ww, wy + wh);
+  ng.addColorStop(0, '#1b0526'); ng.addColorStop(1, '#04121a');
+  ctx.fillStyle = ng; ctx.fillRect(wx, wy, ww, wh);
+  for (let i=0;i<26;i++){
+    const sx = wx + nz('star', i)*ww, sy = wy + nz('star2', i)*wh;
+    const tw = 0.4 + 0.6*Math.abs(Math.sin(G.t*(1+i%4) + i));
+    ctx.fillStyle = rgba(200, 240, 255, 0.5*tw);
+    ctx.beginPath(); ctx.arc(sx, sy, (i%3)*0.7 + 0.6, 0, TAU); ctx.fill();
+  }
+  // большое зрачок-луна
+  const px = wx + ww*0.62, py = wy + wh*0.44, pr = Math.min(ww, wh)*0.3;
+  ctx.fillStyle = rgba(255, 240, 200, 0.85); ctx.beginPath(); ctx.arc(px, py, pr, 0, TAU); ctx.fill();
+  ctx.fillStyle = rgba(10, 5, 15, 0.9); ctx.beginPath(); ctx.ellipse(px + wob(2, G.t*0.4, pr*0.15), py, pr*0.42, pr*0.6, 0, 0, TAU); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = rgba(150, 200, 190, 0.25); ctx.lineWidth = 3; rrect(wx, wy, ww, wh, 6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(wx + ww/2, wy); ctx.lineTo(wx + ww/2, wy + wh); ctx.stroke();
+  // линолеум: перспектива + разводы-воспоминания
+  const floorY = H*0.6;
+  ctx.save(); ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(W, floorY); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.clip();
+  const fg = ctx.createLinearGradient(0, floorY, 0, H);
+  fg.addColorStop(0, '#122023'); fg.addColorStop(1, '#070d10');
+  ctx.fillStyle = fg; ctx.fillRect(0, floorY, W, H - floorY);
+  ctx.strokeStyle = rgba(130, 170, 160, 0.09);
+  for (let i=-10;i<=10;i++){
+    ctx.beginPath(); ctx.moveTo(W/2 + i*W*0.07, floorY); ctx.lineTo(W/2 + i*W*0.5, H); ctx.stroke();
+  }
+  for (let i=1;i<8;i++){
+    const y = floorY + (H-floorY)*Math.pow(i/8, 2.2);
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  // отпечатки пальцев пола (он всё помнит)
+  for (let i=0;i<12;i++){
+    const fx = (nz('fp', i)*1.3 - 0.15)*W, fy = floorY + nz('fp2', i)*(H-floorY);
+    const a = 0.03 + 0.05*Math.abs(Math.sin(G.t*0.3 + i)) + dist*0.06;
+    ctx.save(); ctx.translate(fx, fy); ctx.rotate(nz('fp3', i)*TAU);
+    ctx.strokeStyle = rgba(190, 255, 235, a); ctx.lineWidth = 1.4;
+    for (let r = 3; r < 18; r += 3.4){ ctx.beginPath(); ctx.ellipse(0, 0, r, r*1.35, 0, 0.4, TAU - 0.6); ctx.stroke(); }
+    ctx.restore();
+  }
+  ctx.restore();
+  // глаза в стенах (появляются, когда психея течёт)
+  const eyes = Math.min(9, Math.floor((G.eyeQ + dist*22)/9));
+  for (let i=0;i<eyes;i++){
+    const ex = W*(0.06 + nz('eye', i)*0.88), ey = H*(0.06 + nz('eye2', i)*0.42);
+    const s = (9 + nz('eye3', i)*15)*U;
+    const blink = Math.max(0.05, Math.abs(Math.sin(G.t*(0.6 + nz('eye4', i)) + i)));
+    ctx.save(); ctx.translate(ex, ey);
+    ctx.fillStyle = rgba(238, 250, 246, 0.55);
+    ctx.beginPath(); ctx.ellipse(0, 0, s, s*blink, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = rgba(20, 30, 26, 0.85);
+    ctx.beginPath(); ctx.arc(wob(i, G.t*0.8, s*0.2), 0, s*0.34*Math.max(0.2, blink), 0, TAU); ctx.fill();
+    ctx.strokeStyle = rgba(255, 110, 130, 0.25); ctx.lineWidth = 1;
+    for (let k=0;k<5;k++){ const a = k/5*TAU; ctx.beginPath(); ctx.moveTo(Math.cos(a)*s*0.9, Math.sin(a)*s*blink*0.9);
+      ctx.lineTo(Math.cos(a)*s*1.3, Math.sin(a)*s*blink*1.3); ctx.stroke(); }
+    ctx.restore();
+  }
+  // потёки
+  for (let i=0;i<7;i++){
+    const x = nz('drip', i)*W, len = (30 + nz('drip2', i)*120)*U;
+    const y = (G.t*(20 + nz('drip3', i)*40) + nz('drip4', i)*300) % (H + 200) - 100;
+    ctx.strokeStyle = rgba(180, 255, 220, 0.08); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.sin(i)*2, y + len); ctx.stroke();
+  }
+}
+
+/* ---------- 20. СТОЛ (живой) ---------- */
+function drawTable(){
+  const dist = 1 - G.sanity/100;
+  const cx = L.cx, cy = L.cy, tw = L.tw, th = L.th;
+  G.breath = Math.max(0, G.breath - 0.02);
+  const br = 1 + Math.sin(G.t*0.9)*0.012 + G.breath*0.05 + dist*0.02*Math.sin(G.t*3.3);
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(br, br);
+  // тень
+  ctx.fillStyle = rgba(0, 0, 0, 0.55);
+  ctx.beginPath(); ctx.ellipse(0, th*0.28, tw*0.56, th*0.5, 0, 0, TAU); ctx.fill();
+  // тело стола: дышащая плёнка
+  const tg = ctx.createRadialGradient(0, -th*0.2, tw*0.05, 0, 0, tw*0.55);
+  tg.addColorStop(0, '#2b6a5e'); tg.addColorStop(0.55, '#12463f'); tg.addColorStop(1, '#06201f');
+  ctx.fillStyle = tg;
+  ctx.beginPath();
+  const N = 64;
+  for (let i=0;i<=N;i++){
+    const a = i/N*TAU;
+    const rr = 1 + Math.sin(a*3 + G.t*1.1)*0.022 + Math.sin(a*7 - G.t*0.7)*0.014*(1+dist*3) + Math.sin(a*13 + G.t*2.2)*0.006*(1+dist*5);
+    const x = Math.cos(a)*tw*0.5*rr, y = Math.sin(a)*th*0.5*rr;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath(); ctx.fill();
+  // кайма-бахрома из нервов
+  ctx.strokeStyle = rgba(255, 120, 150, 0.22 + dist*0.25); ctx.lineWidth = 2.2;
+  ctx.stroke();
+  ctx.strokeStyle = rgba(190, 255, 230, 0.1); ctx.lineWidth = 1;
+  for (let i=0;i<40;i++){
+    const a = i/40*TAU + G.t*0.05;
+    const r0 = 0.5, r1 = 0.5 + 0.028 + 0.02*Math.sin(G.t*2 + i);
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*tw*r0, Math.sin(a)*th*r0);
+    ctx.lineTo(Math.cos(a)*tw*r1, Math.sin(a)*th*r1);
+    ctx.stroke();
+  }
+  // вензеля-воспоминания о прошлых раздачах
+  ctx.save(); ctx.clip();
+  for (let i=0;i<18;i++){
+    const px = (nz('mem', i)*2-1)*tw*0.46, py = (nz('mem2', i)*2-1)*th*0.42;
+    const s = (12 + nz('mem3', i)*26)*U;
+    const al = 0.05 + 0.1*Math.abs(Math.sin(G.t*0.4 + i*1.7));
+    ctx.save(); ctx.translate(px, py); ctx.rotate(nz('mem4', i)*TAU + G.t*0.02);
+    ctx.strokeStyle = rgba(220, 255, 240, al); ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.rect(-s/2, -s*0.7, s, s*1.4); ctx.stroke();
+    if (i % 3 === 0){ glyphTooth(0, 0, s*0.5, rgba(255, 240, 240, al*1.4)); }
+    else { ctx.beginPath(); ctx.arc(0, 0, s*0.3, 0, TAU); ctx.stroke(); }
+    ctx.restore();
+  }
+  // лужа света от лампы
+  const pl = ctx.createRadialGradient(0, -th*0.1, 10, 0, -th*0.1, tw*0.4);
+  pl.addColorStop(0, rgba(220, 255, 240, 0.14)); pl.addColorStop(1, rgba(0,0,0,0));
+  ctx.fillStyle = pl; ctx.fillRect(-tw, -th, tw*2, th*2);
+  ctx.restore();
+  ctx.restore();
+  if (G.scene !== 'title'){ drawPot(); drawChips(); }
+}
+function drawPot(){
+  const p = L.pot, n = Math.min(26, Math.round(G.pot/4));
+  txt('БАНК', p.x, p.y - 34*U, 11*U, rgba(200, 240, 230, 0.5), 'center', F_MONO);
+  txt(G.pot + ' зубов', p.x, p.y - 20*U, 20*U, '#f4f1e4', 'center', F_SERIF, 0.95);
+  for (let i=0;i<n;i++){
+    const a = nz('pot', i)*TAU, r = nz('pot2', i)*Math.min(L.tw*0.14, 70*U);
+    const x = p.x + Math.cos(a)*r, y = p.y + 12*U + Math.sin(a)*r*0.4;
+    glyphTooth(x, y, (8 + nz('pot3', i)*5)*U, rgba(244, 241, 228, 0.75 + 0.2*Math.sin(G.t + i)));
+  }
+  if (G.pot > 0 && chance(0.02)) { A.tooth(); }
+}
+function drawChips(){
+  G.players.forEach((p, i) => {
+    if (!L || !L.chip[i]) return;
+    const at = L.chip[i];
+    const n = Math.min(20, Math.round(p.chips/6));
+    for (let k=0;k<n;k++){
+      const jx = (k%7)*11*U + nz('cj'+i, k)*4*U, jy = Math.floor(k/7)*11*U + nz('cj2'+i, k)*3*U;
+      glyphTooth(at.x - 34*U + jx, at.y + jy, (7 + nz('cj3'+i, k)*3)*U,
+                 p.busted ? rgba(120,120,120,0.4) : rgba(244, 241, 228, 0.62));
+    }
+    txt(p.name, at.x, at.y + 34*U, 11*U, rgba(210, 240, 230, 0.8), 'center', F_MONO);
+    txt(p.chips + ' з.', at.x, at.y + 50*U, 14*U, p.you ? '#ffdc6a' : rgba(244,241,228,0.9), 'center', F_SERIF);
+    if (G.bet[i] > 0 && !G.folded[i] && G.scene === 'hand'){
+      txt('+' + G.bet[i], at.x, at.y - 24*U, 13*U, '#8dff9e', 'center', F_MONO);
+    }
+  });
+}
+
+/* ---------- 21. МОТЫЛЁК-ДИЛЕР ---------- */
+function drawDealer(){
+  const d = L.dealer, t = G.t, dist = 1 - G.sanity/100;
+  const flap = Math.sin(t*(4 + dist*4));
+  const bob = Math.sin(t*1.3)*6*U;
+  ctx.save(); ctx.translate(d.x, d.y + bob);
+  const ws = 78*U;
+  ctx.scale(1, 1);
+  // пылевые чешуйки
+  for (let i=0;i<14;i++){
+    const a = t*0.6 + i, rr = (26 + i*4)*U;
+    ctx.fillStyle = rgba(220, 235, 255, 0.06 + 0.05*Math.abs(Math.sin(t + i)));
+    ctx.beginPath(); ctx.arc(Math.cos(a)*rr, Math.sin(a*1.3)*rr*0.4 - 10*U, 2*U, 0, TAU); ctx.fill();
+  }
+  // крылья
+  for (const s of [-1, 1]){
+    ctx.save(); ctx.scale(s, 1);
+    ctx.translate(0, -6*U);
+    ctx.rotate(flap*0.16);
+    const wg = ctx.createLinearGradient(0, 0, ws, -ws*0.5);
+    wg.addColorStop(0, '#5b6a86'); wg.addColorStop(0.5, '#8f9ec2'); wg.addColorStop(1, '#2b3446');
+    ctx.fillStyle = wg;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(ws*0.75, -ws*0.85, ws*1.0, -ws*0.1);
+    ctx.quadraticCurveTo(ws*0.92, ws*0.35, ws*0.32, ws*0.3);
+    ctx.quadraticCurveTo(ws*0.1, ws*0.2, 0, 0);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = rgba(255, 200, 120, 0.35); ctx.lineWidth = 1.2;
+    for (let k=0;k<5;k++){
+      ctx.beginPath(); ctx.moveTo(ws*0.08, -ws*0.02);
+      ctx.quadraticCurveTo(ws*0.5, -ws*0.5 + k*ws*0.16, ws*(0.75 + k*0.04), -ws*0.1 + k*ws*0.1); ctx.stroke();
+    }
+    // глазок на крыле
+    ctx.fillStyle = rgba(255, 240, 200, 0.5);
+    ctx.beginPath(); ctx.arc(ws*0.62, -ws*0.12, ws*0.09, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#0b0d12';
+    ctx.beginPath(); ctx.arc(ws*0.62, -ws*0.12, ws*0.045, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+  // сюртук
+  ctx.fillStyle = '#0d1118';
+  ctx.beginPath();
+  ctx.moveTo(-22*U, -14*U); ctx.lineTo(22*U, -14*U); ctx.lineTo(28*U, 58*U);
+  ctx.quadraticCurveTo(0, 72*U, -28*U, 58*U); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#e9eef2';
+  ctx.beginPath(); ctx.moveTo(-8*U, -12*U); ctx.lineTo(8*U, -12*U); ctx.lineTo(5*U, 52*U); ctx.lineTo(-5*U, 52*U); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#1a1f2b';
+  ctx.beginPath(); ctx.moveTo(-9*U, -13*U); ctx.lineTo(0, 4*U); ctx.lineTo(-2*U, -13*U); ctx.closePath();
+  ctx.moveTo(9*U, -13*U); ctx.lineTo(0, 4*U); ctx.lineTo(2*U, -13*U); ctx.closePath(); ctx.fill();
+  // бабочка
+  ctx.fillStyle = '#ff5f87';
+  ctx.beginPath(); ctx.ellipse(0, -10*U, 12*U, 5*U, 0, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -10*U, 3*U, 0, TAU); ctx.fill();
+  // тело моли
+  ctx.fillStyle = '#4a3f36';
+  ctx.beginPath(); ctx.ellipse(0, 8*U, 12*U, 26*U, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = rgba(200, 180, 150, 0.5); ctx.lineWidth = 1;
+  for (let k=0;k<5;k++){ ctx.beginPath(); ctx.moveTo(-11*U, 2*U + k*8*U); ctx.lineTo(11*U, 2*U + k*8*U); ctx.stroke(); }
+  // голова + составные глаза
+  ctx.fillStyle = '#6b5c4c';
+  ctx.beginPath(); ctx.arc(0, -20*U, 13*U, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#4a3f36'; ctx.lineWidth = 2*U;
+  for (const s of [-1,1]){
+    ctx.beginPath(); ctx.moveTo(s*6*U, -30*U);
+    ctx.quadraticCurveTo(s*20*U, -46*U, s*(26 + 4*Math.sin(t*2))*U, -34*U + Math.sin(t*2.4)*4*U); ctx.stroke();
+  }
+  for (const s of [-1,1]){
+    const eg = ctx.createRadialGradient(s*6*U, -22*U, 1, s*6*U, -22*U, 8*U);
+    eg.addColorStop(0, '#c9f5ff'); eg.addColorStop(0.4, '#2b6a8a'); eg.addColorStop(1, '#05121a');
+    ctx.fillStyle = eg;
+    ctx.beginPath(); ctx.ellipse(s*6.5*U, -21*U, 7*U, 8*U, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = rgba(255,255,255,0.7);
+    ctx.beginPath(); ctx.arc(s*4.5*U, -24*U, 1.6*U, 0, TAU); ctx.fill();
+  }
+  // хоботок
+  ctx.strokeStyle = '#3b322a'; ctx.lineWidth = 2.4*U;
+  ctx.beginPath(); ctx.moveTo(0, -14*U);
+  ctx.quadraticCurveTo(6*U, -4*U + Math.sin(t*3)*3*U, 0, 2*U + Math.sin(t*2.6)*4*U); ctx.stroke();
+  // колода в крыле
+  ctx.save(); ctx.translate(30*U, 24*U); ctx.rotate(Math.sin(t*1.7)*0.15);
+  ctx.fillStyle = '#e8e4d6'; rrect(-10*U, -3*U, 20*U, 26*U, 3); ctx.fill();
+  ctx.fillStyle = '#2a3b4a'; rrect(-10*U, -3*U, 20*U, 4*U, 2); ctx.fill();
+  ctx.restore();
+  txt('Игорь Николаевич', 0, 78*U, 12*U, rgba(220, 240, 250, 0.6), 'center', F_MONO);
+  ctx.restore();
+}
+
+/* ---------- 22. СОСЕДИ И ТЫ ---------- */
+function drawZoya(){
+  const p = G.players[1]; if (p.busted) return drawGhost(L.body[1].x, L.body[1].y, 'ЗЮ');
+  const x = L.body[1].x, y = L.body[1].y, t = G.t;
+  ctx.save(); ctx.translate(x, y);
+  // плечи/шаль
+  ctx.fillStyle = '#3a2038';
+  ctx.beginPath();
+  ctx.moveTo(-52*U, 78*U); ctx.quadraticCurveTo(-58*U, 4*U, -18*U, -14*U);
+  ctx.lineTo(18*U, -14*U); ctx.quadraticCurveTo(58*U, 4*U, 52*U, 78*U); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = rgba(255, 95, 135, 0.35); ctx.lineWidth = 1.5;
+  for (let k=0;k<6;k++){ ctx.beginPath();
+    ctx.moveTo(-46*U + k*4*U, 74*U); ctx.quadraticCurveTo(0, 30*U + k*6*U, 46*U - k*4*U, 74*U); ctx.stroke(); }
+  // голова
+  ctx.fillStyle = '#d9c3b4';
+  ctx.beginPath(); ctx.arc(0, -40*U, 24*U, 0, TAU); ctx.fill();
+  // платок
+  ctx.fillStyle = '#7a2f4a';
+  ctx.beginPath(); ctx.moveTo(-26*U, -44*U); ctx.quadraticCurveTo(0, -76*U, 26*U, -44*U);
+  ctx.quadraticCurveTo(0, -54*U, -26*U, -44*U); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-26*U, -44*U); ctx.lineTo(-40*U, -20*U); ctx.lineTo(-20*U, -34*U); ctx.closePath();
+  ctx.moveTo(26*U, -44*U); ctx.lineTo(40*U, -20*U); ctx.lineTo(20*U, -34*U); ctx.closePath(); ctx.fill();
+  // глаза: блик + слежка за тобой
+  const look = clamp((G.sanity < 40 ? Math.sin(t*4) : Math.sin(t*0.6))*3, -3, 3);
+  for (const s of [-1,1]){
+    ctx.fillStyle = '#f5f2ea'; ctx.beginPath(); ctx.ellipse(s*9*U, -42*U, 6*U, 4.2*U, 0, 0, TAU); ctx.fill();
+    const blink = Math.abs(Math.sin(t*0.7 + (s>0?0:1.2))) > 0.94 ? 0.1 : 1;
+    ctx.fillStyle = '#2b3a44'; ctx.beginPath(); ctx.arc(s*9*U + look*U, -42*U, 2.6*U*blink, 0, TAU); ctx.fill();
+  }
+  // рот: шепчет или шевелит челюстью
+  ctx.strokeStyle = '#8a4a4a'; ctx.lineWidth = 2*U;
+  const mo = p.talkT > 0 ? 4*U + Math.abs(Math.sin(t*11))*5*U : 2*U;
+  ctx.beginPath(); ctx.ellipse(0, -30*U, 6*U, mo*0.5, 0, 0, TAU); ctx.stroke();
+  // очки-половинки
+  ctx.strokeStyle = rgba(230, 240, 250, 0.5); ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.arc(-9*U, -42*U, 8*U, 0.3, Math.PI-0.3); ctx.arc(9*U, -42*U, 8*U, 0.3, Math.PI-0.3); ctx.stroke();
+  // спицы + вязание
+  const kn = Math.sin(t*3.2)*8*U;
+  ctx.strokeStyle = '#cfd8e3'; ctx.lineWidth = 2.4*U;
+  ctx.beginPath(); ctx.moveTo(-30*U, 40*U + kn); ctx.lineTo(6*U, 6*U - kn); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(30*U, 40*U - kn); ctx.lineTo(-6*U, 6*U + kn); ctx.stroke();
+  ctx.fillStyle = '#b07bff'; ctx.beginPath(); ctx.arc(-34*U, 62*U, 10*U, 0, TAU); ctx.fill();
+  ctx.strokeStyle = rgba(176, 123, 255, 0.6); ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.arc(-34*U, 62*U, 15*U + Math.sin(t*2)*3*U, 0, TAU*0.8); ctx.stroke();
+  // банка с чужими зубами
+  ctx.fillStyle = rgba(200, 240, 250, 0.14); rrect(38*U, 30*U, 26*U, 34*U, 4); ctx.fill();
+  ctx.strokeStyle = rgba(200, 240, 250, 0.4); ctx.lineWidth = 1.2; rrect(38*U, 30*U, 26*U, 34*U, 4); ctx.stroke();
+  for (let k=0;k<5;k++) glyphTooth(46*U + (k%2)*10*U, 44*U + Math.floor(k/2)*9*U, 6*U, rgba(244,241,228,0.75));
+  // фобия: пот и дрожь, если рядом семёрка
+  const sevenNear = G.board.some(c => c.up && c.r === 5) || p.cards.some(c => c.r === 5);
+  if (sevenNear){
+    shakeIt(Math.max(G.shake, 2));
+    for (let k=0;k<7;k++){
+      const hx = -20*U + nz('sw', k)*44*U, hy = -58*U + nz('sw2', k)*18*U;
+      ctx.fillStyle = rgba(160, 230, 255, 0.5);
+      ctx.beginPath(); ctx.ellipse(hx, hy + ((t*40 + k*20)%26), 1.6*U, 3*U, 0, 0, TAU); ctx.fill();
+    }
+    txt('СЕМЬ… СЕМЬ…', 0, -78*U, 13*U, rgba(255, 95, 135, 0.7 + 0.3*Math.sin(t*8)), 'center', F_MONO);
+  }
+  ctx.restore();
+}
+function drawAndry(){
+  const p = G.players[2]; if (p.busted) return drawGhost(L.body[2].x, L.body[2].y, '117');
+  const x = L.body[2].x, y = L.body[2].y - 14*U, t = G.t;
+  ctx.save(); ctx.translate(x, y);
+  // корпус кассы
+  ctx.fillStyle = '#1d2530'; rrect(-46*U, -56*U, 92*U, 130*U, 8); ctx.fill();
+  ctx.strokeStyle = rgba(120, 210, 255, 0.3); ctx.lineWidth = 1.6; rrect(-46*U, -56*U, 92*U, 130*U, 8); ctx.stroke();
+  // экран
+  const sc = p.freeze > 0 ? '#1b2cff' : '#071018';
+  ctx.fillStyle = sc; rrect(-36*U, -46*U, 72*U, 44*U, 4); ctx.fill();
+  if (p.freeze > 0){
+    ctx.fillStyle = '#dfe8ff'; ctx.font = 9*U + 'px ' + F_MONO; ctx.textAlign = 'center';
+    ['СИНИЙ ЭКРАН','Фобия: СДАЧА','next of kin: стол'].forEach((s, k) => ctx.fillText(s, 0, -34*U + k*13*U));
+  } else {
+    // лицо-пиксель
+    const blink = Math.abs(Math.sin(t*1.1)) > 0.9 ? 0.15 : 1;
+    ctx.fillStyle = '#8dff9e';
+    ctx.fillRect(-20*U, -34*U, 10*U, 7*U*blink); ctx.fillRect(10*U, -34*U, 10*U, 7*U*blink);
+    const mo = p.talkT > 0 ? Math.abs(Math.sin(t*13))*8*U : 3*U;
+    ctx.fillRect(-12*U, -18*U, 24*U, Math.max(2*U, mo));
+    // «глаз» сканера
+    ctx.strokeStyle = rgba(255, 95, 135, 0.55); ctx.lineWidth = 1.5*U;
+    ctx.beginPath(); ctx.moveTo(-30*U, -44*U + (t*30%44)); ctx.lineTo(30*U, -44*U + (t*30%44)); ctx.stroke();
+  }
+  // клавиатура / слот
+  ctx.fillStyle = '#0d141c'; rrect(-36*U, 4*U, 72*U, 26*U, 3); ctx.fill();
+  for (let i=0;i<12;i++){
+    const lit = (Math.floor(t*6) + i) % 5 === 0;
+    ctx.fillStyle = rgba(140, 200, 230, lit ? 0.45 : 0.14);
+    ctx.fillRect(-33*U + (i%4)*18*U, 7*U + Math.floor(i/4)*7*U, 14*U, 5*U);
+  }
+  ctx.fillStyle = '#0a0f16'; ctx.fillRect(-30*U, 36*U, 60*U, 5*U);
+  // лента чеков
+  ctx.strokeStyle = rgba(244, 241, 228, 0.7); ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  const tape = 90*U + Math.sin(t*0.8)*12*U;
+  ctx.moveTo(30*U, 40*U);
+  for (let k=0;k<12;k++) ctx.lineTo(30*U + Math.sin(k*0.8 + t*2)*10*U, 40*U + k*tape/12);
+  ctx.stroke();
+  ctx.save(); ctx.translate(38*U, 60*U); ctx.rotate(0.2);
+  ctx.fillStyle = rgba(244, 241, 228, 0.85); rrect(0, 0, 30*U, 52*U, 2); ctx.fill();
+  ctx.fillStyle = '#22303a'; ctx.font = 6*U + 'px ' + F_MONO;
+  ['ИТОГО: ∞','СДАЧА: НЕТ','ЗУБЫ: 1','СПАСИБО'].forEach((s, k) => ctx.fillText(s, 3*U, 12*U + k*11*U));
+  ctx.restore();
+  // антенна
+  ctx.strokeStyle = '#6b7c8c'; ctx.lineWidth = 2*U;
+  ctx.beginPath(); ctx.moveTo(0, -56*U); ctx.lineTo(0, -76*U); ctx.stroke();
+  ctx.fillStyle = chance(0.5) ? '#ffdc6a' : '#ff5f87';
+  ctx.beginPath(); ctx.arc(0, -79*U, 4*U + Math.sin(t*6)*U, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+function drawGhost(x, y, tag){
+  ctx.save(); ctx.translate(x + L.CW*0.5, y);
+  ctx.globalAlpha = 0.22 + 0.1*Math.sin(G.t*2);
+  ctx.strokeStyle = '#9fd8ff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(0, 20*U, 40*U, 52*U, 0, 0, TAU); ctx.stroke();
+  txt(tag, 0, 20*U, 22*U, rgba(159, 216, 255, 0.8), 'center', F_MONO);
+  txt('выписан', 0, 60*U, 11*U, rgba(159, 216, 255, 0.6), 'center', F_MONO);
+  ctx.restore();
+}
+function drawYou(){
+  const t = G.t, dist = 1 - G.sanity/100;
+  const by = L.body[0].y + L.CH*0.35;
+  for (const s of [-1, 1]){
+    const hx = L.cx + s*L.CW*2.35, hy = by;
+    const jit = dist > 0.5 ? wob(s*3, t*4, dist*3) : 0;
+    ctx.save(); ctx.translate(hx + jit, hy);
+    ctx.fillStyle = rgba(0, 0, 0, 0.35);
+    ctx.beginPath(); ctx.ellipse(0, 8*U, 30*U, 12*U, 0, 0, TAU); ctx.fill();
+    // рукав
+    ctx.fillStyle = '#22303f'; rrect(-24*U, 6*U, 48*U, 90*U, 8); ctx.fill();
+    ctx.fillStyle = '#31465c'; rrect(-24*U, 6*U, 48*U, 13*U, 6); ctx.fill();
+    // ладонь
+    ctx.fillStyle = '#dcc6b6';
+    ctx.beginPath(); ctx.ellipse(0, 0, 21*U, 15*U, s*0.2, 0, TAU); ctx.fill();
+    // пальцы
+    for (let k=0;k<4;k++){
+      const px = -13*U + k*8.6*U;
+      const lift = Math.abs(Math.sin(t*1.5 + k*0.9 + (s>0?1.4:0))) * (4 + dist*7) * U;
+      ctx.fillStyle = '#dcc6b6';
+      ctx.beginPath(); ctx.ellipse(px, -12*U - lift, 4.1*U, 10*U, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = rgba(120, 90, 80, 0.25); ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(px - 3*U, -14*U - lift); ctx.lineTo(px + 3*U, -14*U - lift); ctx.stroke();
+    }
+    // большой палец
+    ctx.fillStyle = '#dcc6b6';
+    ctx.beginPath(); ctx.ellipse(s*19*U, -2*U, 9*U, 5.2*U, s*0.5, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+  // блик стола на руках
+  ctx.fillStyle = rgba(90, 200, 170, 0.04);
+  ctx.fillRect(0, by - 20*U, W, H);
+}
+
+/* ---------- 23. КАРТЫ ---------- */
+function cardSlot(c){
+  if (c.owner >= 0){
+    const p = G.players[c.owner], k = p.cards.indexOf(c);
+    if (c.owner === 0){
+      const s = L.you[Math.min(k, 1)];
+      return { x: s.x + (k > 1 ? k*L.CW*0.6 : 0), y: s.y, rot: (k - 0.5)*0.12 };
+    }
+    const base = c.owner === 1 ? L.left : L.right;
+    return { x: base.x + k*L.CW*0.55, y: base.y + k*4*U, rot: (c.owner === 1 ? -0.25 : 0.25) + (k - 0.5)*0.1 };
+  }
+  const bi = G.board.indexOf(c);
+  if (bi >= 0){
+    const s = L.board[Math.min(bi, 4)];
+    return { x: s.x + (bi > 4 ? (bi-4)*L.CW*0.3 : 0), y: s.y - (bi > 4 ? 12*U : 0), rot: wob(bi, G.t*0.5, 0.03) };
+  }
+  return { x: L.dealer.x + 40*U, y: L.dealer.y + 60*U, rot: 0 };
+}
+function drawCard(c, dt){
+  const w = L.CW, h = L.CH;
+  const sel = (c.owner === 0 && G.sel === G.players[0].cards.indexOf(c) && G.players[0].cards[G.sel] === c);
+  const dist = 1 - G.sanity/100;
+  const m = mem(c);
+  ctx.save();
+  ctx.translate(c.x + w/2, c.y + h/2);
+  ctx.rotate(c.rot + wob(c.ph, G.t*(1 + dist*3), 0.02 + dist*0.05));
+  const pulse = 1 + (c.glow > 0 ? Math.sin(G.t*12)*0.02*c.glow : 0);
+  ctx.scale(c.sc*pulse, c.sc*pulse);
+  ctx.translate(-w/2, -h/2);
+  // аура
+  if (c.glow > 0.02 || sel || c.bite){
+    ctx.save();
+    ctx.shadowColor = c.bite > 0 ? '#ff2b4d' : (sel ? '#ffdc6a' : SUITS[c.s].c);
+    ctx.shadowBlur = (14 + 26*Math.max(c.glow, sel ? 0.8 : 0) + c.bite*10) * U;
+    ctx.fillStyle = rgba(255,255,255,0.001); rrect(0, 0, w, h, 7*U); ctx.fill();
+    ctx.restore();
+  }
+  if (!c.up){
+    // рубашка: мокрый глаз
+    const bg = ctx.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, '#12313c'); bg.addColorStop(0.5, '#0a1d26'); bg.addColorStop(1, '#142f3a');
+    ctx.fillStyle = bg; rrect(0, 0, w, h, 7*U); ctx.fill();
+    ctx.strokeStyle = rgba(120, 200, 220, 0.35); ctx.lineWidth = 1.2;
+    rrect(3*U, 3*U, w-6*U, h-6*U, 5*U); ctx.stroke();
+    ctx.save(); ctx.beginPath(); rrect(0, 0, w, h, 7*U); ctx.clip();
+    ctx.strokeStyle = rgba(180, 240, 255, 0.18);
+    for (let k=0;k<8;k++){ ctx.beginPath(); ctx.arc(w/2, h/2, (4 + k*3)*U, 0, TAU); ctx.stroke(); }
+    ctx.fillStyle = rgba(255, 95, 135, 0.5);
+    ctx.beginPath(); ctx.ellipse(w/2 + wob(c.ph, G.t, 2*U), h/2, 5*U, 9*U, 0, 0, TAU); ctx.fill();
+    ctx.restore();
+  } else {
+    // лицо карты
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#f6f3e7'); bg.addColorStop(1, '#d9d5c2');
+    ctx.fillStyle = bg; rrect(0, 0, w, h, 7*U); ctx.fill();
+    ctx.strokeStyle = rgba(20, 30, 34, 0.25); ctx.lineWidth = 1; rrect(0.5, 0.5, w-1, h-1, 7*U); ctx.stroke();
+    ctx.save(); ctx.beginPath(); rrect(0, 0, w, h, 7*U); ctx.clip();
+    // фон по масти
+    ctx.fillStyle = SUITS[c.s].dark; ctx.globalAlpha = 0.07; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1;
+    const S = SUITS[c.s], gl = GLYPH[c.s];
+    const rankStr = RSHORT[c.r];
+    // угловые номиналы
+    txt(rankStr, w*0.16, h*0.15, h*0.2, S.c, 'center', F_SERIF, 1, 0, rgba(0,0,0,0.2));
+    txt(rankStr, w*0.84, h*0.85, h*0.2, S.c, 'center', F_SERIF, 1, Math.PI);
+    gl(w*0.16, h*0.3, h*0.1, S.c);
+    gl(w*0.84, h*0.7, h*0.1, S.c);
+    // центральная сцена
+    gl(w/2, h/2, h*0.42, S.c);
+    // мимика: карты чувствуют
+    ctx.strokeStyle = rgba(10, 14, 16, 0.55); ctx.lineWidth = 1.4*U;
+    const ey = h*0.44, mx = w/2;
+    ctx.beginPath(); ctx.arc(mx - w*0.1, ey, 2.2*U, 0, TAU); ctx.arc(mx + w*0.1, ey, 2.2*U, 0, TAU); ctx.stroke();
+    ctx.beginPath();
+    if (m.grudge > 3) ctx.moveTo(mx - w*0.12, h*0.6), ctx.quadraticCurveTo(mx, h*0.52, mx + w*0.12, h*0.6);
+    else if (m.love > 2) ctx.moveTo(mx - w*0.12, h*0.56), ctx.quadraticCurveTo(mx, h*0.66, mx + w*0.12, h*0.56);
+    else ctx.moveTo(mx - w*0.1, h*0.58), ctx.lineTo(mx + w*0.1, h*0.58);
+    ctx.stroke();
+    // обида: трещины и кровь
+    if (m.grudge > 1.5){
+      ctx.strokeStyle = rgba(120, 10, 30, Math.min(0.8, 0.2 + m.grudge*0.08)); ctx.lineWidth = 1.3*U;
+      for (let k=0;k<Math.min(6, Math.floor(m.grudge));k++){
+        const a = nz('cr', c.uid*7 + k)*TAU;
+        ctx.beginPath(); ctx.moveTo(w/2, h/2);
+        ctx.lineTo(w/2 + Math.cos(a)*w*0.6, h/2 + Math.sin(a)*h*0.6); ctx.stroke();
+      }
+    }
+    if (c.bite){ ctx.fillStyle = rgba(255, 40, 70, 0.16 + 0.1*Math.sin(G.t*8)); ctx.fillRect(0, 0, w, h); }
+    // поцелуй
+    if (c.kissed){
+      ctx.fillStyle = rgba(255, 95, 135, 0.75);
+      ctx.beginPath(); ctx.arc(w*0.66, h*0.24, 4*U, 0, TAU); ctx.arc(w*0.76, h*0.27, 3.4*U, 0, TAU); ctx.fill();
+    }
+    // дрейф ранга: старый номинал улетает, новый влетает
+    if (c.slide > 0){
+      const o = c.slide;
+      ctx.globalAlpha = o;
+      txt(rankStr, w/2, h/2 - (1-o)*h*0.6, h*0.34, '#ff5f87', 'center', F_SERIF, o);
+      ctx.globalAlpha = 1;
+      txt(RSHORT[c.slideTo], w/2, h/2 + o*h*0.5, h*0.34, '#8dff9e', 'center', F_SERIF, 1 - o);
+    }
+    ctx.restore();
+    // «дышит» — кромка колышется при низкой психее
+    if (dist > 0.45){
+      ctx.strokeStyle = rgba(255, 220, 106, (dist - 0.45)*0.9); ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      for (let i=0;i<=20;i++){
+        const px = i/20*w, py = h - Math.sin(i*0.7 + G.t*5)*dist*3*U;
+        i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+      }
+      ctx.stroke();
+    }
+  }
+  // выделение
+  if (sel){
+    ctx.strokeStyle = '#ffdc6a'; ctx.lineWidth = 2.4*U; ctx.setLineDash([6*U, 5*U]);
+    ctx.lineDashOffset = -G.t*22;
+    rrect(-4*U, -4*U, w+8*U, h+8*U, 9*U); ctx.stroke(); ctx.setLineDash([]);
+    txt('ВЫБРАНО', w/2, -12*U, 10*U, '#ffdc6a', 'center', F_MONO);
+  }
+  ctx.restore();
+  // частицы поцелуя/свечения
+  if (c.glow > 0.02 && chance(0.25)) burst(c.x + w*rnd(0.2,0.8), c.y + h*rnd(0.2,0.8), 1, SUITS[c.s].c, 24, 0.6);
+}
+function drawAllCards(){
+  const put = (c) => {
+    const s = cardSlot(c);
+    c.tx = s.x; c.ty = s.y; c.trot = s.rot;
+    if (G.t >= c.born){
+      c.x = lerp(c.x, c.tx, Math.min(1, 0.18)); c.y = lerp(c.y, c.ty, Math.min(1, 0.18));
+    } else { c.x = L.dealer.x; c.y = L.dealer.y + 40*U; }
+    c.rot = lerp(c.rot, c.trot, 0.12);
+    c.sc = lerp(c.sc, c.tsc, 0.2);
+    c.glow = Math.max(0, c.glow - 0.02);
+    c.bite = Math.max(0, c.bite - 0.004);
+    if (c.slide > 0) c.slide = Math.max(0, c.slide - 0.05);
+  };
+  G.board.forEach(put);
+  G.players.forEach(p => p.cards.forEach(put));
+  G.board.forEach(c => drawCard(c));
+  G.players.forEach(p => p.cards.forEach(c => drawCard(c)));
+}
+
+/* ---------- 24. HUD ---------- */
+function drawHUD(){
+  const dist = 1 - G.sanity/100;
+  // верхняя плашка: раздача, фаза, законы
+  const topH = 66*U;
+  ctx.fillStyle = rgba(4, 10, 12, 0.72); ctx.fillRect(0, 0, W, topH);
+  ctx.strokeStyle = rgba(120, 210, 190, 0.2); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, topH); ctx.lineTo(W, topH); ctx.stroke();
+  txt('раздача №' + G.hand, 14, 16*U, 13*U, '#8dff9e', 'left', F_MONO);
+  const ph = { dealing:'РАЗДАЧА', pre:'ПРЕФЛОП', flop:'ФЛОП', turn:'ТРН', river:'РВР', show:'ШОУДАУН', end:'ПОСЛЕ' }[G.phase] || '—';
+  txt('улица: ' + ph + '  ·  ставка: ' + G.cur, 14, 38*U, 13*U, rgba(230, 250, 240, 0.8), 'left', F_MONO);
+  if (G.f.anteDouble || G.f.driftStorm || G.f.sanityTax) txt('анте ' + G.ante, 14, 54*U, 11*U, rgba(255, 190, 120, 0.7), 'left', F_MONO);
+  // законы
+  let lx = W - 14;
+  G.laws.slice().reverse().forEach((lw, k) => {
+    ctx.font = 12*U + 'px ' + F_MONO;
+    const w = ctx.measureText(lw.t).width + 22*U;
+    lx -= w;
+    const pulse = 0.5 + 0.5*Math.sin(G.t*3 + k);
+    ctx.fillStyle = rgba(255, 220, 106, 0.1 + 0.12*pulse); rrect(lx, 12*U, w, 22*U, 4); ctx.fill();
+    ctx.strokeStyle = rgba(255, 220, 106, 0.55); ctx.lineWidth = 1; rrect(lx, 12*U, w, 22*U, 4); ctx.stroke();
+    txt(lw.t, lx + w/2, 23*U, 12*U, '#ffdc6a', 'center', F_MONO);
+  });
+  // память стола
+  txt('память карт: ' + memTotal().toFixed(0) + ' обид · безумие: ' + G.stats.madness,
+      W - 14, 48*U, 11*U, rgba(176, 123, 255, 0.75), 'right', F_MONO);
+  // ПСИХЕЯ (вертикальная шкала слева)
+  const bx = 14*U, by = L.topBar + 52*U, bh = Math.max(110*U, L.py - by - 120*U), bw = 18*U;
+  ctx.fillStyle = rgba(6, 12, 14, 0.7); rrect(bx - 4*U, by - 4*U, bw + 8*U, bh + 8*U, 6); ctx.fill();
+  const fill = G.sanity/100;
+  ctx.fillStyle = fill > 0.6 ? '#1e5a4a' : '#5a1e2a'; rrect(bx, by, bw, bh, 5); ctx.fill();
+  const hg = ctx.createLinearGradient(0, by + bh*(1-fill), 0, by + bh);
+  hg.addColorStop(0, fill > 0.6 ? '#8dff9e' : '#ff5f87'); hg.addColorStop(1, fill > 0.6 ? '#2f7f5f' : '#7a1030');
+  ctx.fillStyle = hg;
+  const lh = bh*fill;
+  ctx.beginPath();
+  ctx.moveTo(bx, by + bh - lh);
+  for (let i=0;i<=12;i++){ const px = bx + i/12*bw; ctx.lineTo(px, by + bh - lh + Math.sin(i*0.9 + G.t*3)*2*U*(1+dist*3)); }
+  ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx, by + bh); ctx.closePath(); ctx.fill();
+  txt('ПСИХЕЯ', bx + bw/2, by - 14*U, 10*U, rgba(230, 250, 240, 0.75), 'center', F_MONO);
+  txt(G.sanity.toFixed(0), bx + bw/2, by + bh/2, 13*U, '#0b1114', 'center', F_MONO, 0.9);
+  ctx.save(); ctx.translate(bx + bw/2, by + bh + 18*U);
+  // лицо-манометр
+  ctx.strokeStyle = rgba(230, 250, 240, 0.6); ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.arc(0, 0, 10*U, 0, TAU); ctx.stroke();
+  ctx.beginPath(); ctx.arc(-3.4*U, -2*U, 1.2*U, 0, TAU); ctx.arc(3.4*U, -2*U, 1.2*U, 0, TAU); ctx.stroke();
+  ctx.beginPath();
+  if (fill > 0.55) ctx.moveTo(-4*U, 4*U), ctx.quadraticCurveTo(0, 7*U, 4*U, 4*U);
+  else ctx.moveTo(-4*U, 6*U), ctx.quadraticCurveTo(0, 3*U, 4*U, 6*U);
+  ctx.stroke(); ctx.restore();
+  // чей ход
+  if (G.scene === 'hand' && G.phase !== 'show' && G.phase !== 'end'){
+    const turnTxt = G.folded[0] ? 'ТЫ В КОМНАТЕ БОЛЬШЕ НЕ СИДИШЬ'
+      : (G.ai === 0 ? 'ХОД ТВОЙ' : 'ДУМАЕТ ' + G.players[G.ai].name);
+    txt(turnTxt, L.cx, L.py - 56*U, 13*U, G.ai === 0 ? '#ffdc6a' : rgba(150, 220, 210, 0.8), 'center', F_MONO, 0.92);
+    if (G.ai === 0 && !G.folded[0]){
+      const w = 90*U + Math.sin(G.t*4)*10*U;
+      ctx.strokeStyle = rgba(255, 220, 106, 0.5); ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.ellipse(L.cx, L.py + L.CH*0.5, w, L.CH*0.72, 0, 0, TAU); ctx.stroke();
+    }
+  }
+  // журнал
+  let ly = L.topBar + 26*U;
+  const lgx = bx + bw + 16*U;
+  ctx.fillStyle = rgba(3, 8, 10, 0.42);
+  rrect(lgx - 8*U, ly - 16*U, 236*U, Math.min(6, G.log.length)*40*U + 18*U, 6); ctx.fill();
+  ctx.save();
+  G.log.slice(0, 6).forEach((l, i) => {
+    const age = l.age, a = clamp(1 - age/26, 0.25, 1);
+    const col = { bad:'#ff5f87', good:'#8dff9e', sys:'#79d6ff', whisper:'#b07bff', act:'#e6f0ea',
+                  money:'#ffdc6a', cheat:'#ff8a3d', drift:'#7ff0d0', muck:'#c0a0ff' }[l.cls] || '#cfd8d2';
+    const lines = wrapWith(l.t, 214*U, 11*U);
+    lines.forEach((s, k) => txt(s, lgx, ly + k*13*U, 11*U, hexA(col, a*0.9), 'left', F_MONO));
+    ly += lines.length*13*U + 8*U;
+  });
+  ctx.restore();
+  drawButtons();
+  drawBubbles();
+}
+function wrapWith(s, maxW, size){
+  ctx.font = size + 'px ' + F_MONO;
+  const words = String(s).split(' '), out = []; let line = '';
+  for (const w of words){
+    const t = line ? line + ' ' + w : w;
+    if (ctx.measureText(t).width > maxW && line){ out.push(line); line = w; } else line = t;
+  }
+  if (line) out.push(line);
+  return out.slice(0, 4);
+}
+function hexA(hex, a){
+  const h = hex.replace('#',''); const n = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return rgba((n>>16)&255, (n>>8)&255, n&255, clamp(a, 0, 1));
+}
+function drawButtons(){
+  if (!L) return;
+  L.btn.forEach((b, i) => {
+    const hov = hoverBtn === i;
+    ctx.save();
+    const jx = b.en && hov ? rnd(-1.2, 1.2) : 0, jy = b.en && hov ? rnd(-1.2, 1.2) : 0;
+    ctx.translate(jx, jy);
+    ctx.fillStyle = b.en ? (hov ? hexA(b.col, 0.34) : rgba(10, 18, 20, 0.82)) : rgba(8, 12, 14, 0.6);
+    rrect(b.x, b.y, b.w, b.h, 8); ctx.fill();
+    ctx.strokeStyle = b.en ? hexA(b.col, hov ? 0.95 : 0.55) : rgba(90, 100, 100, 0.35);
+    ctx.lineWidth = hov ? 2.2 : 1.4; rrect(b.x, b.y, b.w, b.h, 8); ctx.stroke();
+    if (hov && b.en){
+      ctx.fillStyle = hexA(b.col, 0.09);
+      ctx.fillRect(b.x, b.y - 14*U, b.w, 4*U);
+    }
+    const fs = clamp(b.w / (b.label.length*0.66), 10*U, 15*U);
+    txt(b.label, b.x + b.w/2, b.y + b.h*0.4, fs, b.en ? b.col : rgba(120,130,130,0.5), 'center', F_MONO);
+    if (b.sub) txt(b.sub, b.x + b.w/2, b.y + b.h*0.72, 10*U, rgba(220, 240, 235, b.en ? 0.6 : 0.3), 'center', F_MONO);
+    if (!b.en && G.scene === 'hand'){
+      ctx.strokeStyle = rgba(255, 95, 135, 0.2); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(b.x+4, b.y+b.h-4); ctx.lineTo(b.x+b.w-4, b.y+4); ctx.stroke();
+    }
+    ctx.restore();
+  });
+  // подсказка о выборе карты
+  if (G.scene === 'hand' && G.players[0] && G.players[0].cards.length){
+    const tip = G.sel < 0 ? 'клик по своей карте — выбрать' :
+      (RSHORT[G.players[0].cards[G.sel].r] + ' ' + SUITS[G.players[0].cards[G.sel].s].name + ' выбрана · ' + handName(0));
+    txt(tip, L.cx, L.py - 32*U, 11*U, rgba(200, 230, 220, 0.6), 'center', F_MONO);
+  }
+}
+function drawBubbles(){
+  const stack = {};
+  G.bub.forEach(bb => {
+    const p = G.players[bb.pi];
+    const at = L.bub[bb.pi] || { x:L.cx, y:L.cy };
+    const a = clamp(bb.life - bb.t, 0, 1) * clamp(bb.t*4, 0, 1);
+    const lines = wrapWith(bb.txt, 190*U, 12*U);
+    const w = 200*U, h = lines.length*15*U + 16*U;
+    const k = stack[bb.pi] || 0; stack[bb.pi] = k + 1;
+    const x = clamp(at.x - w/2, 8, W - w - 8), y = clamp(at.y - h - k*(h + 10*U), L.topBar + 6, H - h - 8);
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = rgba(12, 20, 24, 0.85); rrect(x, y, w, h, 10); ctx.fill();
+    ctx.strokeStyle = p.you ? rgba(255, 220, 106, 0.6) : (p.kind === 'zoya' ? rgba(255, 95, 135, 0.6) : rgba(121, 214, 255, 0.6));
+    ctx.lineWidth = 1.4; rrect(x, y, w, h, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(at.x - 7*U, y + h); ctx.lineTo(at.x, y + h + 12*U); ctx.lineTo(at.x + 7*U, y + h); ctx.closePath();
+    ctx.fillStyle = rgba(12, 20, 24, 0.85); ctx.fill();
+    lines.forEach((s, k) => txt(s, x + 12*U, y + 14*U + k*15*U, 12*U, '#e9f2ee', 'left', F_SERIF));
+    ctx.restore();
+  });
+}
+/* ---------- 25. ТЕЛЕГРАММА (всплывающие безумные предписания) ---------- */
+function drawTelegram(){
+  if (!G.tel) return;
+  const tl = G.tel, t = tl.t;
+  const inT = clamp(t/0.28, 0, 1), outT = clamp((t - 3.1)/0.4, 0, 1);
+  const sc = lerp(0.7, 1, ease(inT)) * lerp(1, 1.15, outT);
+  const al = inT * (1 - outT);
+  if (outT >= 1){ G.tel = null; pullTelegram(); return; }
+  const w = Math.min(W*0.72, 560*U), h = 168*U;
+  const x = L.cx - w/2, y = L.cy - h/2 - L.th*0.1;
+  ctx.save(); ctx.globalAlpha = al;
+  ctx.translate(L.cx, y + h/2); ctx.rotate(Math.sin(t*2.2)*0.012*(1 - G.sanity/100 + 0.2)); ctx.scale(sc, sc);
+  ctx.translate(-L.cx, -(y + h/2));
+  ctx.fillStyle = rgba(0, 0, 0, 0.55); rrect(x + 6, y + 10, w, h, 4); ctx.fill();
+  ctx.fillStyle = '#efe7d2'; rrect(x, y, w, h, 4); ctx.fill();
+  ctx.strokeStyle = hexA(tl.tint, 0.9); ctx.lineWidth = 2; rrect(x, y, w, h, 4); ctx.stroke();
+  // зубчатые края
+  ctx.fillStyle = '#efe7d2';
+  for (let i=0;i<w;i+=9){ ctx.beginPath(); ctx.arc(x + i, y, 3.4, 0, Math.PI); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + i, y + h, 3.4, 0, Math.PI); ctx.fill(); }
+  ctx.fillStyle = rgba(10, 14, 18, 0.9);
+  ctx.fillRect(x + 12, y + 14, w - 24, 3);
+  txt('ПРЕДПИСАНИЕ СТОЛА', x + 14, y + 32, 12*U, '#3a3f36', 'left', F_MONO);
+  const full = tl.title.toUpperCase();
+  txt(full.slice(0, Math.floor(t*30)), x + 14, y + 56, 21*U, tl.tint, 'left', F_SERIF);
+  const body = wrapWith(tl.body, w - 40, 14*U);
+  body.forEach((s, k) => txt(s, x + 14, y + 90 + k*19*U, 14*U, '#2c332c', 'left', F_SERIF, clamp((t - 0.5 - k*0.12)*3, 0, 1)));
+  // печать
+  ctx.save(); ctx.translate(x + w - 62*U, y + h - 54*U); ctx.rotate(-0.28 + Math.sin(t)*0.02);
+  ctx.strokeStyle = rgba(200, 40, 60, 0.7); ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.arc(0, 0, 30*U, 0, TAU); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 23*U, 0, TAU); ctx.stroke();
+  txt('СТОЛ', 0, -7*U, 12*U, rgba(200, 40, 60, 0.8), 'center', F_MONO);
+  txt('РАССМОТРЕЛ', 0, 7*U, 9*U, rgba(200, 40, 60, 0.8), 'center', F_MONO);
+  ctx.restore();
+  ctx.restore();
+}
+/* ---------- 26. ОВЕРЛЕИ БЕЗУМИЯ ---------- */
+function drawOverlays(dt){
+  const dist = 1 - G.sanity/100;
+  // скан-линии и зерно
+  ctx.save(); ctx.globalAlpha = 0.06 + dist*0.05;
+  for (let y=0; y<H; y+=3){ ctx.fillStyle = '#000'; ctx.fillRect(0, y, W, 1); }
+  ctx.restore();
+  for (let i=0;i<40;i++){
+    const x = nz('gr', i + Math.floor(G.t*30))*W, y = nz('gr2', i + Math.floor(G.t*30))*H;
+    ctx.fillStyle = rgba(255, 255, 255, 0.03 + 0.05*dist); ctx.fillRect(x, y, 2, 2);
+  }
+  // глитч: смещение полос + цветные полосы
+  if (G.glitch > 0.04){
+    const n = 2 + Math.floor(G.glitch*12);
+    for (let i=0;i<n;i++){
+      const y = rnd(H), hh = rnd(8, 46), dx = rnd(-1, 1)*26*G.glitch;
+      ctx.drawImage(cv, 0, y*DPR, cv.width, hh*DPR, dx, y, W, hh);
+      ctx.fillStyle = chance(0.5) ? rgba(255, 60, 90, 0.08*G.glitch) : rgba(80, 230, 255, 0.08*G.glitch);
+      ctx.fillRect(0, y, W, hh);
+    }
+    if (chance(0.3)){
+      ctx.fillStyle = rgba(255, 220, 106, 0.06);
+      ctx.fillRect(0, rnd(H), W, rnd(3, 18));
+    }
+  }
+  // хроматическая аберрация при низкой психее: сдублировать кадр с tint
+  if (dist > 0.35){
+    ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = (dist - 0.35)*0.5;
+    ctx.drawImage(cv, (-4 - dist*10)*DPR, 0, cv.width, cv.height, -4 - dist*10, 0, W, H);
+    ctx.drawImage(cv, (4 + dist*10)*DPR, 0, cv.width, cv.height, 4 + dist*10, 0, W, H);
+    ctx.restore();
+  }
+  // флеш
+  if (G.flash > 0.01){ ctx.fillStyle = rgba(255, 255, 255, G.flash*0.5); ctx.fillRect(0, 0, W, H); }
+  // большая галлюцинация
+  if (dist > 0.55 && chance(0.004 + dist*0.01)){
+    G.halluc = { t:0, kind:ri(0, 2) };
+  }
+  if (G.halluc){
+    G.halluc.t += dt;
+    const a = clamp(Math.sin(G.halluc.t*1.6), 0, 1) * 0.5;
+    ctx.save(); ctx.globalAlpha = a;
+    const hx = rnd(W*0.2, W*0.8), hy = rnd(H*0.2, H*0.7), s = Math.min(W, H)*0.35;
+    if (G.halluc.kind === 0){
+      ctx.fillStyle = rgba(255, 240, 230, 0.7);
+      ctx.beginPath(); ctx.ellipse(hx, hy, s, s*0.45, rnd(-0.4, 0.4), 0, TAU); ctx.fill();
+      ctx.fillStyle = '#0b1a1e'; ctx.beginPath(); ctx.arc(hx, hy, s*0.22, 0, TAU); ctx.fill();
+    } else if (G.halluc.kind === 1){
+      for (let k=0;k<9;k++) glyphTooth(hx - s*0.6 + k*s*0.15, hy + Math.sin(k)*s*0.1, s*0.14, rgba(244, 241, 228, 0.8));
+    } else {
+      ctx.strokeStyle = rgba(176, 123, 255, 0.8); ctx.lineWidth = 3;
+      for (let k=0;k<5;k++){ ctx.beginPath();
+        ctx.moveTo(hx - s + k*s*0.5, hy - s*0.4); ctx.quadraticCurveTo(hx, hy + k*12, hx + s - k*s*0.5, hy - s*0.4); ctx.stroke(); }
+    }
+    ctx.restore();
+    if (G.halluc.t > 1.4) G.halluc = null;
+  }
+  // виньетка
+  const vg = ctx.createRadialGradient(L.cx, L.cy, Math.min(W, H)*0.25, L.cx, L.cy, Math.max(W, H)*0.78);
+  vg.addColorStop(0, rgba(0,0,0,0)); vg.addColorStop(1, rgba(0, 6, 8, 0.75 + dist*0.2));
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  // шевелюра текста на грани безумия
+  if (dist > 0.68){
+    const s = ['ТЫ СЛЫШИШЬ ЗУБЫ', 'ПОЛ ОТКРЫЛ ГЛАЗА', 'МОТЫЛЁК ЗНАЕТ ТВОЁ ИМЯ', 'ЭТО НЕ ТВОИ КАРТЫ'][Math.floor(G.t*0.8)%4];
+    txt(s, rnd(W*0.2, W*0.8), rnd(H*0.2, H*0.8), 16*U + rnd(6), rgba(255, 95, 135, 0.35 + 0.2*Math.sin(G.t*9)), 'center', F_SERIF, 0.6, rnd(-0.1,0.1));
+  }
+}
+/* ---------- 27. ТИТУЛ / ФИНАЛЫ ---------- */
+function drawTitle(){
+  layout();
+  const t = G.t;
+  // воронка из карт
+  for (let i=0;i<18;i++){
+    const a = t*0.35 + i*0.35, rr = (60 + i*22)*U;
+    const x = L.cx + Math.cos(a)*rr*1.5, y = L.cy + Math.sin(a)*rr*0.5;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a*1.6);
+    ctx.globalAlpha = 0.12 + 0.2*Math.abs(Math.sin(a));
+    ctx.fillStyle = '#0e2028'; rrect(-14*U, -20*U, 28*U, 40*U, 3); ctx.fill();
+    ctx.strokeStyle = '#79d6ff'; ctx.lineWidth = 1; rrect(-14*U, -20*U, 28*U, 40*U, 3); ctx.stroke();
+    GLYPH[i%4](0, 0, 14*U, [ '#79d6ff','#ff5f87','#ffc44d','#8dff9e' ][i%4]);
+    ctx.restore();
+  }
+  const title = 'ШИЗОПОКЕР';
+  const ts = clamp(W*0.11, 40, 108);
+  for (let i=0;i<title.length;i++){
+    const ch = title[i];
+    const x = L.cx + (i - (title.length-1)/2)*ts*0.72;
+    const dy = Math.sin(t*1.6 + i*0.7)*ts*0.07;
+    const rot = Math.sin(t*0.9 + i)*0.06;
+    txt(ch, x + rnd(-1.5, 1.5)*G.glitch*3, L.H0 + dy + rnd(-1.5,1.5)*G.glitch*3, ts, '#f2f7f4', 'center', F_SERIF, 1, rot, 'rgba(255,95,135,'+(0.5+0.3*Math.sin(t+i))+')');
+    if (chance(0.02)) txt(ch, x + rnd(-6,6), L.H0 + dy + rnd(-6,6), ts, '#79d6ff', 'center', F_SERIF, 0.3, rot);
+  }
+  txt('С Т О Л   Н А   К Р А Ю   Ч Е Р Е П А', L.cx, L.H0 + ts*0.78, clamp(W*0.028, 13, 26), '#8dff9e', 'center', F_MONO);
+  const sl = ['«Две карты в руке. Шесть правил в гробу.»',
+              '«Здесь сдаёт не дилер. Здесь сдаёшь ты.»',
+              '«Анте — зубы. Сдачи не будет.»'][Math.floor(t*0.25)%3];
+  txt(sl, L.cx, L.H0 + ts*1.35, clamp(W*0.022, 12, 20), rgba(240, 235, 210, 0.9), 'center', F_SERIF, 0.75 + 0.25*Math.sin(t*2));
+  txt('кабинет №∞ · пятница · свет мигает в такт', L.cx, L.H0 + ts*1.8, clamp(W*0.016, 10, 14), rgba(180, 210, 200, 0.6), 'center', F_MONO);
+  drawLore();
+  drawButtons();
+}
+const LORE = [
+  ['КОЛБАСНАЯ ТЕОРЕМА', 'Ранги карт перетекают под взглядом: двойка становится тузом, туз — ничем. Стол голодный.'],
+  ['АНТИ-ЗАКОНЫ', 'Каждую раздачу стол вывешивает предписание: флеш хуже пары, мир перевёрнут, борда не существует.'],
+  ['КАРТЫ ВСЁ ПОМНЯТ', 'Сброшенная карта копит обиду: вернётся на борд — укусит. Поцелуй карту — и она за тебя.'],
+  ['ПСИХЕЯ', 'Упала до нуля — и ты меняешься картами со столом. Буквально.'],
+  ['СОСЕДИ', 'Зоя, 84: туз в напёрстке, паника от семёрок. Андрюша-117: читает борд, виснет от слова «сдача».'],
+  ['Управление', 'Клик по своей карте — выбрать. Кнопки 1–6, F — сброс, ПРОБЕЛ — чек/колл, R — поднять.']
+];
+function drawLore(){
+  const x = W*0.03, y0 = H*0.545, sp = 62*U;
+  const rows = LORE.filter((l, i) => y0 + i*sp + 40*U < L.btnTop - 20*U);
+  ctx.save();
+  ctx.fillStyle = rgba(3, 9, 11, 0.55);
+  rrect(x - 10*U, y0 - 26*U, Math.min(W*0.44, 470*U), rows.length*sp + 14*U, 8); ctx.fill();
+  ctx.strokeStyle = rgba(120, 210, 190, 0.18); ctx.lineWidth = 1;
+  rrect(x - 10*U, y0 - 26*U, Math.min(W*0.44, 470*U), rows.length*sp + 14*U, 8); ctx.stroke();
+  rows.forEach((l, i) => {
+    const yy = y0 + i*sp;
+    txt('▍ ' + l[0], x, yy, clamp(W*0.017, 11, 15), '#ffdc6a', 'left', F_MONO);
+    wrapWith(l[1], Math.min(W*0.4, 430*U), clamp(W*0.015, 10, 13)).slice(0, 2).forEach((s, k) =>
+      txt(s, x + 8*U, yy + 18*U + k*15*U, clamp(W*0.015, 10, 13), rgba(220, 240, 235, 0.72), 'left', F_SERIF));
+  });
+  ctx.restore();
+}
+function drawEnd(win){
+  layout();
+  const t = G.t;
+  ctx.fillStyle = rgba(2, 6, 8, 0.5); ctx.fillRect(0, 0, W, H);
+  for (let i=0;i<30;i++){
+    glyphTooth(rnd(W), (H + 100 - ((t*60 + i*80) % (H + 200))), rnd(10, 26), rgba(244, 241, 228, win ? 0.18 : 0.08));
+  }
+  const head = win ? 'ТЫ ЗАБРАЛ ВСЕ ЗУБЫ' : 'ТЕБЯ ВЫПИСАЛИ';
+  txt(head, L.cx, H*0.26, clamp(W*0.075, 30, 74), win ? '#ffdc6a' : '#ff5f87', 'center', F_SERIF, 1, Math.sin(t)*0.02, 'rgba(0,0,0,0.5)');
+  const lines = win
+    ? ['Стол остался без зубов. Он теперь жуёт воздух, и воздух стал дороже.',
+       'Игорь Николаевич сложил крылья. Зоя Павловна вяжет из твоего имени шарф.',
+       'АНДРЮША-117 печатает чек: «КЛИЕНТ ПОГЛОЩЁН. СПАСИБО ЗА ПОКУПКУ».']
+    : ['Твои зубы ушли под скатерть. Скатерть была тёплой.',
+       'Психея: 0. Ты теперь борд. Тебя будут сдавать другим пациентам.',
+       'На твоём стуле уже сидит кто-то из линолеума.'];
+  lines.forEach((s, i) => txt(s, L.cx, H*0.4 + i*30*U, clamp(W*0.021, 12, 19), rgba(230, 245, 240, 0.85), 'center', F_SERIF));
+  txt('раздач: ' + G.stats.hands + ' · побед: ' + G.stats.wins + ' · безумия: ' + G.stats.madness +
+      ' · укусов карт: ' + G.stats.bites + ' · память стола: ' + memTotal().toFixed(0),
+      L.cx, H*0.58, clamp(W*0.016, 10, 14), '#8dff9e', 'center', F_MONO);
+  drawButtons();
+}
+/*__PART5__*/
+/* ---------- 28. ВВОД ---------- */
+let hoverBtn = -1, mx = -1, my = -1;
+function hitBtn(x, y){
+  if (!L) return -1;
+  for (let i=0;i<L.btn.length;i++){
+    const b = L.btn[i];
+    if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return i;
+  }
+  return -1;
+}
+function hitCard(x, y){
+  const you = G.players[0];
+  if (!you || !L) return -1;
+  for (let k=you.cards.length-1;k>=0;k--){
+    const c = you.cards[k];
+    if (x >= c.x && x <= c.x + L.CW && y >= c.y && y <= c.y + L.CH) return k;
+  }
+  return -1;
+}
+function press(id){
+  A.boot();
+  if (G.scene === 'title'){
+    if (id === 'start') return beginGame();
+    if (id === 'lore'){ telegram('ПРАВИЛА НЕ НАЙДЕНЫ', 'Они были написаны на линолеуме. Пол их уже переварил. Ориентируйся по предписаниям стола.', '#79d6ff');
+      logIt('Ты спросил правила. Лампа мигнула трижды — это «нет».', 'whisper'); return; }
+    if (id === 'mute'){ A.set(!A.on); return; }
+  }
+  if (G.scene === 'over' || G.scene === 'win'){
+    if (id === 'again') return beginGame();
+    if (id === 'mute'){ A.set(!A.on); return; }
+  }
+  if (G.scene === 'hand') return playerAct(id);
+}
+function pointer(e){
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0].clientX)) - r.left;
+  const y = (e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0].clientY)) - r.top;
+  return { x:x, y:y };
+}
+function onDown(e){
+  e.preventDefault();
+  const p = pointer(e); mx = p.x; my = p.y;
+  A.boot();
+  const b = hitBtn(p.x, p.y);
+  if (b >= 0 && L.btn[b].en){ press(L.btn[b].id); shakeIt(3); return; }
+  if (G.scene === 'hand'){
+    const k = hitCard(p.x, p.y);
+    if (k >= 0){
+      G.sel = (G.sel === k) ? -1 : k;
+      const c = G.players[0].cards[k];
+      if (G.sel === k){ c.glow = 1.4; A.tone(520 + c.r*30, 0.12, 'triangle', 0.08); }
+      if (mem(c).grudge > 3 && chance(0.4)){ say(0, 'Эта карта меня помнит. Плохо помнит.', 2); sanity(-3, 'она помнит'); }
+      return;
+    }
+  }
+  // клик по комнате
+  if (G.scene === 'hand' && chance(0.5)){
+    logIt('ТЫ ТРОГАЕШЬ КОМНАТУ: ' + pick(WHISPERS), 'whisper');
+    burst(p.x, p.y, 8, '#7ff0d0', 60, 0.7); A.hum(ri(0,9));
+    if (chance(0.15)) glitchIt(0.5);
+  }
+}
+function onMove(e){
+  const p = pointer(e); mx = p.x; my = p.y;
+  hoverBtn = hitBtn(p.x, p.y);
+  cv.style.cursor = (hoverBtn >= 0 && L.btn[hoverBtn].en) ? 'pointer' : 'crosshair';
+}
+cv.addEventListener('pointerdown', onDown);
+cv.addEventListener('pointermove', onMove);
+window.addEventListener('keydown', ev => {
+  const k = ev.key.toLowerCase();
+  if (k >= '1' && k <= '6'){ const i = +k - 1; if (L && L.btn[i] && L.btn[i].en) press(L.btn[i].id); }
+  if (k === 'f') press('fold');
+  if (k === ' ') { ev.preventDefault(); press('call'); }
+  if (k === 'r') press('raise');
+  if (k === 'к' || k === 'c') press('kiss');
+  if (k === 'м' || k === 'b') press('feed');
+  if (k === 'm') A.set(!A.on);
+  if (k === 'enter' && (G.scene === 'title')) press('start');
 });
 
-newGame();buildScene();updatePlates();
+/* ---------- 29. СТАРТ / СБРОС ---------- */
+function beginGame(){
+  for (let i=0;i<52;i++) MEM[i] = { grudge:0, love:0, folds:0, eaten:0, wins:0, lost:0, last:-1 };
+  mkPlayers();
+  G.sanity = 100; G.hand = 0; G.stats = { hands:0, wins:0, madness:0, bites:0 };
+  G.log = []; G.bub = []; G.parts = []; G.tel = null; G.telQ = []; G.eyeQ = 0;
+  G.scene = 'hand';
+  layout();
+  telegram('ДОБРО ПОЖАЛОВАТЬ В КАБИНЕТ №∞',
+    'Садись. Анте — 5 зубов. У тебя 100. Кнопки: сбросить / уравнять / поднять / поцеловать карту / покормить стол. Клик по своей карте — выбрать. Правила меняются каждую раздачу. Это не баг, это стол.', '#ffdc6a');
+  logIt('Ты сел. Стул был тёплым. Это плохой знак.', 'sys');
+  A.bell();
+  startHand();
+}
+
+/* ---------- 30. ОБНОВЛЕНИЕ ---------- */
+let lastT = 0, idle = 0, driftClock = 0, heartClock = 0, leakClock = 0;
+function update(dt){
+  G.t += dt;
+  runTimers();
+  G.shake *= Math.pow(0.02, dt); G.glitch *= Math.pow(0.05, dt);
+  G.flash = Math.max(0, G.flash - dt*2.2);
+  G.drift = Math.max(0, G.drift - dt*0.6);
+  G.lawFlash = Math.max(0, G.lawFlash - dt*1.2);
+  if (G.tel){ G.tel.t += dt; if (G.tel.t > 3.6){ G.tel = null; pullTelegram(); } }
+  G.bub.forEach(b => b.t += dt);
+  G.bub = G.bub.filter(b => b.t < b.life);
+  G.players.forEach(p => { p.talkT = Math.max(0, p.talkT - dt); });
+  G.log.forEach(l => l.age += dt);
+  if (G.log.length > 10) G.log.length = 10;
+  for (let i=G.parts.length-1;i>=0;i--){
+    const q = G.parts[i];
+    q.t += dt; q.x += q.vx*dt; q.y += q.vy*dt; q.vy += 240*dt; q.rot += q.vr*dt;
+    if (q.t > q.life) G.parts.splice(i, 1);
+  }
+  // сердце стола
+  heartClock += dt;
+  const beat = lerp(1.4, 0.48, 1 - G.sanity/100);
+  if (heartClock > beat){ heartClock = 0; A.thump(G.sanity > 55); }
+  // психея утекает сама
+  if (G.scene === 'hand'){
+    leakClock += dt;
+    if (leakClock > 6){ leakClock = 0; sanity(-(G.f.sanityTax ? 1.6 : 0.8), null);
+      if (G.sanity < 34 && chance(0.5)) logIt('ГОЛОС ИЗ ЛИНОЛЕУМА: ' + pick(WHISPERS), 'whisper'); }
+    // карты дрейфуют сами, без спроса
+    driftClock += dt;
+    if (driftClock > (G.f.driftStorm ? 7 : 14)){ driftClock = 0; if (G.board.length) drift(1, 'стол переварил ранг'); }
+    // если ты молчишь слишком долго — стол решает за тебя
+    if (G.ai === 0 && !G.folded[0] && G.phase !== 'show' && G.phase !== 'end' && G.phase !== 'dealing'){
+      idle += dt;
+      if (idle > 26){
+        idle = 0;
+        logIt('СТОЛ РЕШАЕТ ЗА ТЕБЯ. Ты слишком долго смотрел на свои карты.', 'bad');
+        telegram('ПРОТОКОЛ МОЛЧАНИЯ', 'Ты не ходил 26 секунд. Игорь Николаевич сделал выбор вместо тебя. Он всегда делает выбор вместо тебя.', '#b07bff');
+        sanity(-5, 'решение приняли без тебя'); glitchIt(1);
+        needCall() > 0 ? doAction(0, 'call') : doAction(0, 'check');
+      }
+    } else idle = 0;
+  } else idle = 0;
+}
+
+/* ---------- 31. РЕНДЕР ---------- */
+function render(dt){
+  layout();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const sh = G.shake;
+  ctx.save();
+  if (sh > 0.3){ ctx.translate(rnd(-sh, sh)*0.6, rnd(-sh, sh)*0.6); ctx.rotate(rnd(-sh, sh)*0.0006); }
+  drawRoom(dt);
+  drawTable();
+  drawDealer();
+  if (G.scene === 'title'){
+    drawZoya(); drawAndry(); drawTitle();
+  } else {
+    drawZoya(); drawAndry(); drawYou();
+    drawAllCards();
+    drawPotTeeth();
+    if (G.scene === 'hand') drawHUD();
+    drawShowdown();
+    drawParticles();
+    drawTelegram();
+    if (G.scene === 'over') drawEnd(false);
+    if (G.scene === 'win') drawEnd(true);
+  }
+  ctx.restore();
+  drawOverlays(dt);
+}
+function drawPotTeeth(){
+  G.parts.forEach(q => {
+    const a = clamp(1 - q.t/q.life, 0, 1);
+    ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.globalAlpha = a;
+    if (q.kind === 'tooth') glyphTooth(0, 0, q.r*2.4, q.col);
+    else { ctx.fillStyle = q.col; ctx.fillRect(-q.r, -q.r, q.r*2, q.r*2); }
+    ctx.restore();
+  });
+}
+function drawParticles(){ /* частьца уже нарисованы в drawPotTeeth; здесь — только искрыlaws */ }
+function drawShowdown(){
+  if (G.phase !== 'show' || !G.result) return;
+  const t = G.showT;
+  G.result.forEach((s, i) => {
+    const p = G.players[s.i];
+    const at = i === 0 ? { x:L.cx, y:L.py - 74*U }
+           : i === 1 ? { x:L.left.x + L.CW*0.5, y:L.left.y - 30*U }
+           : { x:L.right.x + L.CW*0.5, y:L.right.y - 30*U };
+    const win = i === 0;
+    const a = clamp((t - i*0.25)*2, 0, 1);
+    ctx.save(); ctx.globalAlpha = a;
+    const label = s.e.name;
+    ctx.font = 13*U + 'px ' + F_MONO;
+    const w = ctx.measureText(label).width + 20*U;
+    ctx.fillStyle = rgba(6, 12, 14, 0.8); rrect(at.x - w/2, at.y - 15*U, w, 30*U, 15*U); ctx.fill();
+    ctx.strokeStyle = win ? '#ffdc6a' : rgba(180, 210, 200, 0.4); ctx.lineWidth = win ? 2 : 1;
+    rrect(at.x - w/2, at.y - 15*U, w, 30*U, 15*U); ctx.stroke();
+    txt(label, at.x, at.y, 13*U, win ? '#ffdc6a' : '#cfe0da', 'center', F_MONO);
+    if (win){
+      for (let k=0;k<7;k++){
+        const ang = k/7*TAU + t;
+        glyphTooth(at.x + Math.cos(ang)*(w*0.6), at.y + Math.sin(ang)*18*U, 6*U, rgba(255, 220, 106, 0.5));
+      }
+    }
+    ctx.restore();
+  });
+  G.showT += 0.016;
+}
+/* ---------- 32. ЦИКЛ ---------- */
+function frame(ts){
+  const dt = Math.min(0.05, lastT ? (ts - lastT)/1000 : 0.016);
+  lastT = ts;
+  try { update(dt); render(dt); }
+  catch(e){
+    if (!window.__crash){ window.__crash = e; console.error('СТОЛ СЛОМАЛСЯ:', e); }
+    try { G.glitch = 1.5; G.shake = 20; } catch(_){}
+  }
+  requestAnimationFrame(frame);
+}
+mkPlayers(); layout();
+logIt('Кабинет №∞. Свободный стул смотрит на тебя.', 'sys');
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
